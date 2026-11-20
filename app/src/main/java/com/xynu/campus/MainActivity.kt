@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.xynu.campus.ui.home.ChaoxingLibraryScreen
 import com.xynu.campus.ui.home.HomeScreen
 import com.xynu.campus.ui.home.WebScreen
 import com.xynu.campus.ui.jw.JwLoginScreen
@@ -56,6 +57,7 @@ object Routes {
     const val SCHEDULE = "schedule"
     const val SCORE = "score"
     const val FREE_CLASSROOM = "free_classroom"
+    const val FREE_CLASSROOM_FALLBACK = "free_classroom_fallback"
     const val LIB_LOGIN = "lib_login"
     const val BOOK_SEARCH = "book_search"
     const val BOOK_DETAIL = "book_detail"
@@ -63,6 +65,7 @@ object Routes {
     const val MY_BORROW = "my_borrow"
     const val SETTINGS = "settings"
     const val WEB = "web"
+    const val CHAOXING_LIBRARY = "chaoxing_library"
 }
 
 @Composable
@@ -99,6 +102,7 @@ fun CampusApp() {
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                 onOpenJwLogin = { navController.navigate(Routes.JW_LOGIN) },
                 onOpenLibLogin = { navController.navigate(Routes.LIB_LOGIN) },
+                onOpenChaoxing = { navController.navigate(Routes.CHAOXING_LIBRARY) },
                 onOpenFavorites = { navController.navigate(Routes.FAVORITES) },
                 onOpenWeb = { url, title ->
                     // 应用内打开所有外链（新闻/座位预约/超星 H5/校园资讯/地图）
@@ -136,6 +140,10 @@ fun CampusApp() {
                 onSuccess = { navController.popBackStack(Routes.HOME, false) })
         }
 
+        composable(Routes.CHAOXING_LIBRARY) {
+            ChaoxingLibraryScreen(onBack = { navController.popBackStack() })
+        }
+
         composable(Routes.SCHEDULE) {
             ScheduleScreen(jwVm, onBack = { navController.popBackStack() },
                 onNeedLogin = { navController.navigate(Routes.JW_LOGIN) })
@@ -147,7 +155,20 @@ fun CampusApp() {
         }
 
         composable(Routes.FREE_CLASSROOM) {
-            // 空教室查询：原生页（走 JwApi.fetchFreeClassrooms，无需 WebView）
+            // 优先使用超星空教室入口；网络不可用时保留原生查询作为 fallback。
+            ChaoxingLibraryScreen(
+                onBack = { navController.popBackStack() },
+                initialTitle = "空教室查询",
+                onFallback = {
+                    navController.navigate(Routes.FREE_CLASSROOM_FALLBACK) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable(Routes.FREE_CLASSROOM_FALLBACK) {
+            // 原生查询保留为校内/超星不可用时的 fallback。
             com.xynu.campus.ui.jw.FreeClassroomScreen(
                 jwVm,
                 onBack = { navController.popBackStack() },
@@ -156,8 +177,12 @@ fun CampusApp() {
         }
 
         composable(Routes.LIB_LOGIN) {
-            LibLoginScreen(libVm, onBack = { navController.popBackStack() },
-                onSuccess = { navController.popBackStack(Routes.HOME, false) })
+            LibLoginScreen(
+                vm = libVm,
+                onBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack(Routes.HOME, false) },
+                onOpenChaoxing = { navController.navigate(Routes.CHAOXING_LIBRARY) }
+            )
         }
 
         composable(Routes.BOOK_SEARCH) {
