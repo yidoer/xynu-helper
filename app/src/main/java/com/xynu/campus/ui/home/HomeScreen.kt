@@ -146,10 +146,9 @@ fun HomeScreen(
                         FeatureTile(Icons.Filled.Book, "我的借阅", tint = XynuGold, onClick = onOpenMyBorrow, modifier = Modifier.weight(1f))
                         // 收藏书架：本地收藏的图书
                         FeatureTile(Icons.Filled.Favorite, "收藏书架", tint = XynuRed, onClick = onOpenFavorites, modifier = Modifier.weight(1f))
-                        // 座位预约：图书馆空间预约系统 H5。
-                        // 该 SPA 在原生 WebView 中渲染异常（JS 启动但页面空白），改用外部浏览器打开
+                        // 座位预约优先进入超星微信大厅，由真实页面处理座位入口和 OAuth。
                         FeatureTile(Icons.Filled.EventSeat, "座位预约", tint = Color(0xFF2E7D32),
-                            onClick = { openInBrowser(context, "http://libspace.xynu.edu.cn/h5/#/login") }, modifier = Modifier.weight(1f))
+                            onClick = { onOpenWeb(SEAT_RESERVATION_HALL_URL, "座位预约") }, modifier = Modifier.weight(1f))
                     }
                 }
             }

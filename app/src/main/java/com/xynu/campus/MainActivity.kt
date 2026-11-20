@@ -24,8 +24,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.xynu.campus.ui.home.EmptyClassroomWebScreen
 import com.xynu.campus.ui.home.HomeScreen
+import com.xynu.campus.ui.home.SEAT_RESERVATION_HALL_URL
 import com.xynu.campus.ui.home.WebScreen
 import com.xynu.campus.ui.jw.JwLoginScreen
 import com.xynu.campus.ui.jw.JwViewModel
@@ -57,7 +57,7 @@ object Routes {
     const val SCHEDULE = "schedule"
     const val SCORE = "score"
     const val FREE_CLASSROOM = "free_classroom"
-    const val FREE_CLASSROOM_FALLBACK = "free_classroom_fallback"
+    const val SEAT_RESERVATION = "seat_reservation"
     const val LIB_LOGIN = "lib_login"
     const val BOOK_SEARCH = "book_search"
     const val BOOK_DETAIL = "book_detail"
@@ -103,12 +103,17 @@ fun CampusApp() {
                 onOpenLibLogin = { navController.navigate(Routes.LIB_LOGIN) },
                 onOpenFavorites = { navController.navigate(Routes.FAVORITES) },
                 onOpenWeb = { url, title ->
-                    // 应用内打开所有外链（新闻/座位预约/超星 H5/校园资讯/地图）
-                    // 用 query parameter 传递，避免 path parameter 中 %2F 被解码成 / 切碎 URL
-                    val encoded = android.net.Uri.encode(url)
-                    val t = title?.let { android.net.Uri.encode(it) } ?: ""
-                    navController.navigate("${Routes.WEB}?url=$encoded&title=$t") {
-                        launchSingleTop = true
+                    if (url == SEAT_RESERVATION_HALL_URL) {
+                        navController.navigate(Routes.SEAT_RESERVATION) {
+                            launchSingleTop = true
+                        }
+                    } else {
+                        // 用 query parameter 传递，避免 path parameter 中 %2F 被解码成 / 切碎 URL
+                        val encoded = android.net.Uri.encode(url)
+                        val t = title?.let { android.net.Uri.encode(it) } ?: ""
+                        navController.navigate("${Routes.WEB}?url=$encoded&title=$t") {
+                            launchSingleTop = true
+                        }
                     }
                 },
             )
@@ -149,24 +154,19 @@ fun CampusApp() {
         }
 
         composable(Routes.FREE_CLASSROOM) {
-            // 优先使用超星空教室入口；网络不可用时保留原生查询作为 fallback。
-            EmptyClassroomWebScreen(
-                onBack = { navController.popBackStack() },
-                initialTitle = "空教室查询",
-                onFallback = {
-                    navController.navigate(Routes.FREE_CLASSROOM_FALLBACK) {
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
-
-        composable(Routes.FREE_CLASSROOM_FALLBACK) {
-            // 原生查询保留为校内/超星不可用时的 fallback。
+            // 空教室实际属于教务系统子页面，必须使用已登录的教务会话查询。
             com.xynu.campus.ui.jw.FreeClassroomScreen(
                 jwVm,
                 onBack = { navController.popBackStack() },
                 onNeedLogin = { navController.navigate(Routes.JW_LOGIN) }
+            )
+        }
+
+        composable(Routes.SEAT_RESERVATION) {
+            WebScreen(
+                encodedUrl = android.net.Uri.encode(SEAT_RESERVATION_HALL_URL),
+                title = "座位预约",
+                onBack = { navController.popBackStack() }
             )
         }
 

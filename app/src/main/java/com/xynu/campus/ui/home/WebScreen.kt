@@ -2,37 +2,74 @@ package com.xynu.campus.ui.home
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.net.Uri
+import android.net.http.SslError
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.webkit.CookieManager
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.layout.*
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.OpenInBrowser
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.xynu.campus.data.net.AppCookieJar
 import com.xynu.campus.ui.common.AppTopBar
+import java.net.URI
 import java.net.URLDecoder
 
+const val SEAT_RESERVATION_HALL_URL =
+    "http://mobilelib.wx.chaoxing.com/weixin/hall/showNew?pid=1512&type=8"
+const val LIBSPACE_RESERVATION_URL = "http://libspace.xynu.edu.cn/h5/#/login"
+
+private const val WECHAT_MOBILE_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 " +
+        "Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 " +
+        "MicroMessenger/8.0.43(0x28002B36) NetType/WIFI Language/zh_CN"
+private const val MOBILE_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+private const val PAGE_TIMEOUT_MS = 20_000L
+private const val BLANK_CHECK_DELAY_MS = 1_500L
+private const val TAG = "WebScreen"
+
 /**
- * 通用应用内 WebView 页。
- * 用于承载新闻详情、校园卡平台、校园资讯、校区地图等所有外链内容，
- * 统一应用内阅读体验；右上角提供"浏览器打开"选项。
- *
- * @param encodedUrl URL（经 Navigation 传参时已编码，此处解码）
- * @param title 页面标题
+ * 应用内 H5 容器：所有普通 HTTP(S) 导航都留在 WebView，非网页 scheme 才交给系统。
+ * 不代替微信 OAuth；微信授权由站点真实跳转，WebView 只负责承载并如实展示失败。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WebScreen(
     encodedUrl: String,
@@ -40,49 +77,54 @@ fun WebScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    val url = remember(encodedUrl) {
-        // 兼容 Uri.encode 和 URLEncoder.encode 两种来源
-        try { android.net.Uri.decode(encodedUrl) } catch (_: Exception) {
+    val initialUrl = remember(encodedUrl) {
+        try {
+            Uri.decode(encodedUrl)
+        } catch (_: Exception) {
             try { URLDecoder.decode(encodedUrl, "UTF-8") } catch (_: Exception) { encodedUrl }
         }
     }
-    // 诊断：打印最终 URL 到 logcat
-    LaunchedEffect(url) {
-        android.util.Log.i("WebScreen", "decoded url = [$url], encodedUrl = [$encodedUrl]")
+    val initialHost = remember(initialUrl) { Uri.parse(initialUrl).host.orEmpty().lowercase() }
+    val isLibraryH5 = remember(initialHost) {
+        initialHost == "mobilelib.wx.chaoxing.com" ||
+            initialHost == "wechat.v2.traceint.com" ||
+            initialHost == "libspace.xynu.edu.cn" ||
+            initialHost.endsWith(".traceint.com")
     }
-    // 按域名区分浏览模式：教务处官网/教务系统用电脑版，其他用手机版
-    val host = remember(url) { android.net.Uri.parse(url).host ?: "" }
-    val isDesktop = remember(host) {
-        host.contains("jwc.xynu.edu.cn") || host.contains("news.xynu.edu.cn") ||
-            host.contains("jwgl.xynu.edu.cn")
-    }
-    val desktopUA =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    val mobileUA =
-        "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
+    var webView by remember { mutableStateOf<WebView?>(null) }
+    var currentUrl by remember { mutableStateOf(initialUrl) }
+    var pageTitle by remember { mutableStateOf(title ?: "浏览") }
     var isLoading by remember { mutableStateOf(true) }
     var loadFailed by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     var reloadKey by remember { mutableStateOf(0) }
+
+    val goBack: () -> Unit = {
+        val view = webView
+        if (view?.canGoBack() == true) view.goBack() else onBack()
+    }
+    BackHandler(enabled = true, onBack = goBack)
+
+    fun openBrowser() {
+        openExternal(context, currentUrl)
+    }
 
     Scaffold(
         containerColor = Color(0xFFF5F6FA),
         topBar = {
             AppTopBar(
-                title = title ?: "浏览",
-                onBack = onBack,
+                title = pageTitle,
+                onBack = goBack,
                 action = {
                     IconButton(
-                        onClick = {
-                            try {
-                                val intent = android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    android.net.Uri.parse(url)
-                                )
-                                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            } catch (_: Exception) { }
-                        },
+                        onClick = { webView?.reload() },
+                        modifier = Modifier.size(38.dp)
+                    ) {
+                        Icon(Icons.Filled.Refresh, "刷新", tint = Color(0xFF3A3A3C), modifier = Modifier.size(20.dp))
+                    }
+                    IconButton(
+                        onClick = ::openBrowser,
                         modifier = Modifier.size(38.dp)
                     ) {
                         Icon(Icons.Filled.OpenInBrowser, "浏览器打开", tint = Color(0xFF3A3A3C), modifier = Modifier.size(20.dp))
@@ -92,92 +134,46 @@ fun WebScreen(
         }
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
-            // reloadKey 变化时重建 WebView 实现重载
             key(reloadKey) {
                 AndroidView(
                     factory = { ctx ->
                         WebView(ctx).apply {
-                            @SuppressLint("SetJavaScriptEnabled")
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.mediaPlaybackRequiresUserGesture = false
-                            // 电脑版站点：桌面 UA + 自适应；手机版站点：移动 UA
-                            settings.loadWithOverviewMode = true
-                            settings.useWideViewPort = true
-                            settings.setSupportZoom(true)
-                            settings.builtInZoomControls = true
-                            settings.displayZoomControls = false
-                            settings.userAgentString = if (isDesktop) desktopUA else mobileUA
-
-                            // 同步 App 内已登录会话 Cookie，教务/图书馆网页版免登录
-                            try {
-                                val h = android.net.Uri.parse(url).host
-                                if (h != null) {
-                                    val jar = CookieManager.getInstance()
-                                    jar.setAcceptCookie(true)
-                                    jar.setAcceptThirdPartyCookies(this, true)
-                                    val cookieHeader = AppCookieJar.cookieHeaderFor(h)
-                                    if (!cookieHeader.isNullOrBlank()) {
-                                        // 带 path=/ 逐条同步，确保 domain/path 正确
-                                        val scheme = android.net.Uri.parse(url).scheme ?: "http"
-                                        val base = "$scheme://$h"
-                                        cookieHeader.split(";").forEach { pair ->
-                                            val kv = pair.trim()
-                                            if (kv.contains("=")) {
-                                                jar.setCookie("$base/jwglxt/", kv, null)
-                                                jar.setCookie(base, kv, null)
-                                            }
-                                        }
-                                        jar.flush()
+                            configureH5WebView(
+                                initialUrl = currentUrl,
+                                useWeChatUserAgent = isLibraryH5,
+                                onUrlChanged = { currentUrl = it },
+                                onTitleChanged = { value ->
+                                    if (!value.isNullOrBlank()) pageTitle = value
+                                },
+                                onLoadingChanged = { loading ->
+                                    isLoading = loading
+                                    if (loading) {
+                                        loadFailed = false
+                                        errorMessage = null
                                     }
-                                }
-                            } catch (_: Exception) { }
-
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(view: WebView?, f: String?, favicon: Bitmap?) {
-                                    isLoading = true
-                                    loadFailed = false
-                                }
-
-                                override fun onPageFinished(view: WebView?, f: String?) {
-                                    isLoading = false
-                                    // 桌面版 UA 才需要强制移动视口；手机版/SPA 用自带 viewport，
-                                    // 避免覆盖单页应用根节点样式导致空白
-                                    if (isDesktop) {
-                                        view?.evaluateJavascript(
-                                            "var m=document.querySelector('meta[name=viewport]');" +
-                                                "if(!m){m=document.createElement('meta');m.name='viewport';document.head.appendChild(m);}" +
-                                                "m.content='width=device-width, initial-scale=1.0, maximum-scale=1.0';", null
-                                        )
-                                    }
-                                }
-
-                                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                                    // 站内链接继续在应用内打开
-                                    view?.loadUrl(request?.url?.toString() ?: url)
-                                    return true
-                                }
-
-                                override fun onReceivedError(
-                                    view: WebView?,
-                                    errorCode: Int,
-                                    description: String,
-                                    failingUrl: String?
-                                ) {
+                                },
+                                onLoadFailed = { message ->
                                     loadFailed = true
                                     isLoading = false
-                                }
-                            }
-                            loadUrl(url)
+                                    errorMessage = message
+                                },
+                                onOpenExternal = { target -> openExternal(context, target) },
+                                onWebViewReady = { webView = this }
+                            )
+                            loadUrl(currentUrl)
                         }
                     },
-                    onRelease = { it.destroy() },
+                    onRelease = {
+                        (it.getTag() as? PageLoadTimers)?.cancel()
+                        webView = null
+                        it.stopLoading()
+                        it.destroy()
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }
 
-            // 加载指示：细进度条 + 中心提示
-            if (isLoading) {
+            if (isLoading && !loadFailed) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -185,50 +181,223 @@ fun WebScreen(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(30.dp), strokeWidth = 3.dp)
                     Spacer(Modifier.height(10.dp))
-                    Text("加载中…", fontSize = 13.sp, color = Color(0xFF8E8E93))
+                    Text("正在打开网页…", fontSize = 13.sp, color = Color(0xFF8E8E93))
                 }
             }
 
-            // 加载失败
             if (loadFailed) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFFF5F6FA)
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("😕", fontSize = 36.sp)
-                        Spacer(Modifier.height(8.dp))
-                        Text("页面加载失败", color = Color(0xFF8E8E93))
+                    Text("页面无法正常显示", color = Color(0xFF8E8E93))
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        errorMessage ?: "请检查网络后重试",
+                        fontSize = 12.sp,
+                        color = Color(0xFFB0B0B4)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = {
+                        loadFailed = false
+                        errorMessage = null
+                        isLoading = true
+                        reloadKey++
+                    }) { Text("重新加载") }
+                    if (isLibraryH5 && currentUrl != LIBSPACE_RESERVATION_URL) {
                         Spacer(Modifier.height(4.dp))
-                        Text("可能是服务器限制或页面已失效", fontSize = 12.sp, color = Color(0xFFB0B0B4))
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = {
-                            reloadKey++
-                            isLoading = true
-                            loadFailed = false
-                        }) {
-                            Text("重新加载")
-                        }
-                        Spacer(Modifier.height(8.dp))
                         TextButton(onClick = {
-                            try {
-                                val intent = android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    android.net.Uri.parse(url)
-                                )
-                                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            } catch (_: Exception) { }
-                        }) {
-                            Text("用浏览器打开")
-                        }
+                            currentUrl = LIBSPACE_RESERVATION_URL
+                            loadFailed = false
+                            errorMessage = null
+                            isLoading = true
+                            reloadKey++
+                        }) { Text("打开备用空间预约") }
                     }
+                    Spacer(Modifier.height(4.dp))
+                    TextButton(onClick = ::openBrowser) { Text("用浏览器打开") }
                 }
             }
         }
+    }
+}
+
+private class PageLoadTimers(
+    private val handler: Handler,
+    private val timeout: Runnable,
+    private val blankCheck: Runnable
+) {
+    fun cancel() {
+        handler.removeCallbacks(timeout)
+        handler.removeCallbacks(blankCheck)
+    }
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+private fun WebView.configureH5WebView(
+    initialUrl: String,
+    useWeChatUserAgent: Boolean,
+    onUrlChanged: (String) -> Unit,
+    onTitleChanged: (String?) -> Unit,
+    onLoadingChanged: (Boolean) -> Unit,
+    onLoadFailed: (String) -> Unit,
+    onOpenExternal: (String) -> Unit,
+    onWebViewReady: () -> Unit
+) {
+    settings.javaScriptEnabled = true
+    settings.domStorageEnabled = true
+    settings.allowContentAccess = true
+    settings.allowFileAccess = false
+    settings.javaScriptCanOpenWindowsAutomatically = true
+    settings.setSupportMultipleWindows(false)
+    settings.mediaPlaybackRequiresUserGesture = false
+    settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+    settings.loadWithOverviewMode = true
+    settings.useWideViewPort = true
+    settings.setSupportZoom(true)
+    settings.builtInZoomControls = true
+    settings.displayZoomControls = false
+    settings.userAgentString = if (useWeChatUserAgent) WECHAT_MOBILE_USER_AGENT else MOBILE_USER_AGENT
+
+    val cookieManager = CookieManager.getInstance()
+    cookieManager.setAcceptCookie(true)
+    cookieManager.setAcceptThirdPartyCookies(this, true)
+    syncCookies(cookieManager, initialUrl)
+
+    val handler = Handler(Looper.getMainLooper())
+    var pageGeneration = 0L
+    lateinit var timeout: Runnable
+    lateinit var blankCheck: Runnable
+    timeout = Runnable {
+        onLoadFailed("页面加载超时，请检查网络后重试")
+    }
+    blankCheck = Runnable {
+        val generation = pageGeneration
+        evaluateJavascript(
+            "(function(){var b=document.body;return !!b && " +
+                "(b.innerText.trim().length>0 || b.querySelector('img,iframe,canvas,svg')!==null || " +
+                "b.innerHTML.length>256);})()"
+        ) { result ->
+            if (generation == pageGeneration && result == "false") {
+                Log.w(TAG, "blank page url=${url.orEmpty()}")
+                onLoadFailed("页面为空白，可能是脚本或网络未完成")
+            }
+        }
+    }
+    setTag(PageLoadTimers(handler, timeout, blankCheck))
+
+    webChromeClient = object : WebChromeClient() {
+        override fun onReceivedTitle(view: WebView?, title: String?) {
+            onTitleChanged(title)
+        }
+    }
+    webViewClient = object : WebViewClient() {
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            pageGeneration++
+            handler.removeCallbacks(timeout)
+            handler.removeCallbacks(blankCheck)
+            handler.postDelayed(timeout, PAGE_TIMEOUT_MS)
+            onUrlChanged(url ?: initialUrl)
+            onLoadingChanged(true)
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            handler.removeCallbacks(timeout)
+            handler.removeCallbacks(blankCheck)
+            onUrlChanged(url ?: initialUrl)
+            onLoadingChanged(false)
+            cookieManager.flush()
+            val generation = pageGeneration
+            handler.postDelayed({
+                if (generation == pageGeneration) blankCheck.run()
+            }, BLANK_CHECK_DELAY_MS)
+        }
+
+        override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest): Boolean =
+            handleNavigation(request.url.toString(), onOpenExternal)
+
+        @Suppress("DEPRECATION")
+        override fun shouldOverrideUrlLoading(view: WebView?, url: String): Boolean =
+            handleNavigation(url, onOpenExternal)
+
+        override fun onReceivedError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            error: WebResourceError?
+        ) {
+            if (request?.isForMainFrame != false) {
+                onLoadFailed("网络错误：${error?.description ?: "无法连接服务器"}")
+            }
+        }
+
+        @Suppress("DEPRECATION")
+        override fun onReceivedError(
+            view: WebView?,
+            errorCode: Int,
+            description: String?,
+            failingUrl: String?
+        ) {
+            onLoadFailed("网络错误：${description ?: "无法连接服务器"}")
+        }
+
+        override fun onReceivedHttpError(
+            view: WebView?,
+            request: WebResourceRequest?,
+            errorResponse: android.webkit.WebResourceResponse?
+        ) {
+            if (request?.isForMainFrame == true && errorResponse != null && errorResponse.statusCode >= 400) {
+                onLoadFailed("服务器返回 HTTP ${errorResponse.statusCode}，请稍后重试")
+            }
+        }
+
+        override fun onReceivedSslError(view: WebView?, handler: android.webkit.SslErrorHandler?, error: SslError?) {
+            Log.e(TAG, "SSL error canceled url=${error?.url} primary=${error?.primaryError}")
+            handler?.cancel()
+            onLoadFailed("超星站点证书异常，请稍后重试或用微信打开")
+        }
+    }
+    onWebViewReady()
+}
+
+private fun syncCookies(cookieManager: CookieManager, url: String) {
+    try {
+        val host = Uri.parse(url).host ?: return
+        val cookieHeader = AppCookieJar.cookieHeaderFor(host).orEmpty()
+        if (cookieHeader.isBlank()) return
+        val base = "${Uri.parse(url).scheme ?: "http"}://$host"
+        cookieHeader.split(';').forEach { pair ->
+            val value = pair.trim()
+            if (value.contains('=')) cookieManager.setCookie(base, value, null)
+        }
+        cookieManager.flush()
+    } catch (_: Exception) {
+        // Cookie 同步失败不应阻止网页自身建立会话。
+    }
+}
+
+private fun handleNavigation(url: String, onOpenExternal: (String) -> Unit): Boolean {
+    if (isInAppWebUrl(url)) return false
+    onOpenExternal(url)
+    return true
+}
+
+private fun isInAppWebUrl(url: String): Boolean {
+    return try {
+        val scheme = URI(url).scheme?.lowercase()
+        scheme == "http" || scheme == "https" || scheme == "about"
+    } catch (_: Exception) {
+        false
+    }
+}
+
+private fun openExternal(context: android.content.Context, url: String) {
+    try {
+        context.startActivity(
+            android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    } catch (_: Exception) {
+        android.widget.Toast.makeText(context, "没有可打开此链接的应用", android.widget.Toast.LENGTH_SHORT).show()
     }
 }

@@ -33,6 +33,10 @@ fun FreeClassroomScreen(
     val state by vm.state.collectAsState()
     var selectedSection by remember { mutableIntStateOf(1) }
 
+    LaunchedEffect(state.loggedIn) {
+        if (state.loggedIn) vm.loadFreeRooms(selectedSection)
+    }
+
     Scaffold(
         containerColor = Color(0xFFF5F6FA),
         topBar = {
