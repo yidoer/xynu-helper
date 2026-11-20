@@ -6,6 +6,7 @@ import android.net.Uri
 import android.net.http.SslError
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
@@ -14,6 +15,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +55,8 @@ import java.net.URLDecoder
 
 const val SEAT_RESERVATION_HALL_URL =
     "http://mobilelib.wx.chaoxing.com/weixin/hall/showNew?pid=1512&type=8"
+const val READER_CARD_BINDING_URL =
+    "http://mobilelib.wx.chaoxing.com/weixin/userBind/showBindAndCheck.action?wxProductId=1512&schoolId=968"
 const val LIBSPACE_RESERVATION_URL = "http://libspace.xynu.edu.cn/h5/#/login"
 
 private const val WECHAT_MOBILE_USER_AGENT =
@@ -64,6 +68,7 @@ private const val MOBILE_USER_AGENT =
         "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 private const val PAGE_TIMEOUT_MS = 20_000L
 private const val BLANK_CHECK_DELAY_MS = 1_500L
+private const val WECHAT_PACKAGE = "com.tencent.mm"
 private const val TAG = "WebScreen"
 
 /**
@@ -87,9 +92,13 @@ fun WebScreen(
     val initialHost = remember(initialUrl) { Uri.parse(initialUrl).host.orEmpty().lowercase() }
     val isLibraryH5 = remember(initialHost) {
         initialHost == "mobilelib.wx.chaoxing.com" ||
+            initialHost == "libopac.xynu.edu.cn" ||
             initialHost == "wechat.v2.traceint.com" ||
             initialHost == "libspace.xynu.edu.cn" ||
             initialHost.endsWith(".traceint.com")
+    }
+    val isReservationH5 = remember(initialHost) {
+        isLibraryH5 && initialHost != "libopac.xynu.edu.cn"
     }
 
     var webView by remember { mutableStateOf<WebView?>(null) }
@@ -210,7 +219,7 @@ fun WebScreen(
                         isLoading = true
                         reloadKey++
                     }) { Text("重新加载") }
-                    if (isLibraryH5 && currentUrl != LIBSPACE_RESERVATION_URL) {
+                    if (isReservationH5 && currentUrl != LIBSPACE_RESERVATION_URL) {
                         Spacer(Modifier.height(4.dp))
                         TextButton(onClick = {
                             currentUrl = LIBSPACE_RESERVATION_URL
@@ -219,6 +228,14 @@ fun WebScreen(
                             isLoading = true
                             reloadKey++
                         }) { Text("打开备用空间预约") }
+                    }
+                    if (isReservationH5) {
+                        Spacer(Modifier.height(4.dp))
+                        TextButton(onClick = {
+                            openInWeChat(context, currentUrl) {
+                                errorMessage = "未检测到微信，请先安装微信，或使用浏览器打开"
+                            }
+                        }) { Text("用微信打开") }
                     }
                     Spacer(Modifier.height(4.dp))
                     TextButton(onClick = ::openBrowser) { Text("用浏览器打开") }
@@ -262,7 +279,7 @@ private fun WebView.configureH5WebView(
     settings.allowContentAccess = true
     settings.allowFileAccess = false
     settings.javaScriptCanOpenWindowsAutomatically = true
-    settings.setSupportMultipleWindows(false)
+    settings.setSupportMultipleWindows(true)
     settings.mediaPlaybackRequiresUserGesture = false
     settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
     settings.loadWithOverviewMode = true
@@ -270,7 +287,7 @@ private fun WebView.configureH5WebView(
     settings.setSupportZoom(true)
     settings.builtInZoomControls = true
     settings.displayZoomControls = false
-    settings.userAgentString = if (useWeChatUserAgent) WECHAT_MOBILE_USER_AGENT else MOBILE_USER_AGENT
+    settings.userAgentString = if (useWeChatUserAgent && !isReaderCardBindingUrl(initialUrl)) WECHAT_MOBILE_USER_AGENT else MOBILE_USER_AGENT
 
     val cookieManager = CookieManager.getInstance()
     cookieManager.setAcceptCookie(true)
@@ -309,9 +326,24 @@ private fun WebView.configureH5WebView(
     }
     setTag(PageLoadTimers(handler, timeout, blankCheck) { pageGeneration++ })
 
+    val hostWebView = this
     webChromeClient = object : WebChromeClient() {
         override fun onReceivedTitle(view: WebView?, title: String?) {
             onTitleChanged(title)
+        }
+
+        override fun onCreateWindow(
+            view: WebView?,
+            isDialog: Boolean,
+            isUserGesture: Boolean,
+            resultMsg: Message
+        ): Boolean {
+            // 超星大厅的读者证入口可能使用 target=_blank/window.open。
+            // 不创建第二个不可见 WebView，直接把新窗口导航回当前页面。
+            val transport = resultMsg.obj as? WebView.WebViewTransport ?: return false
+            transport.webView = hostWebView
+            resultMsg.sendToTarget()
+            return true
         }
     }
     webViewClient = object : WebViewClient() {
@@ -334,6 +366,23 @@ private fun WebView.configureH5WebView(
             onLoadSucceeded()
             onLoadingChanged(false)
             cookieManager.flush()
+            if (isOAuthFailureUrl(finishedUrl)) {
+                failPage("微信授权未完成，请在微信中打开或稍后重试")
+                return
+            }
+            // open.weixin.qq.com 对非微信客户端通常返回 HTTP 200 的提示页，
+            // 不能只依赖 HTTP 错误码，否则用户会看到“加载成功”但无法绑定。
+            if (isWeChatOAuthUrl(finishedUrl)) {
+                val generation = pageGeneration
+                evaluateJavascript(
+                    "(function(){var t=(document.body&&document.body.innerText||'');" +
+                        "return /请在微信客户端打开|请在微信中打开|微信客户端访问/.test(t);})()"
+                ) { result ->
+                    if (generation == pageGeneration && result == "true") {
+                        failPage("微信授权需要在微信客户端完成，请点击“用微信打开”")
+                    }
+                }
+            }
             handler.postDelayed(blankCheck, BLANK_CHECK_DELAY_MS)
         }
 
@@ -414,13 +463,62 @@ internal fun isInAppWebUrl(url: String): Boolean {
     }
 }
 
-private fun openExternal(context: android.content.Context, url: String) {
+internal fun isWeChatOAuthUrl(url: String): Boolean {
+    return try {
+        URI(url).host?.lowercase() == "open.weixin.qq.com" &&
+            URI(url).path?.contains("/connect/oauth2/") == true
+    } catch (_: Exception) {
+        false
+    }
+}
+
+internal fun isOAuthFailureUrl(url: String): Boolean {
+    return try {
+        val uri = URI(url)
+        isWeChatOAuthUrl(url) &&
+            uri.rawQuery?.split('&')?.any { it.substringBefore('=').equals("error", ignoreCase = true) } == true
+    } catch (_: Exception) {
+        false
+    }
+}
+
+internal fun isReaderCardBindingUrl(url: String): Boolean {
+    return try {
+        val uri = URI(url)
+        uri.host?.lowercase() == "mobilelib.wx.chaoxing.com" &&
+            uri.path?.contains("/weixin/userBind/showBindAndCheck") == true
+    } catch (_: Exception) {
+        false
+    }
+}
+
+private fun openInWeChat(
+    context: android.content.Context,
+    url: String,
+    onFailure: () -> Unit = {}
+) {
     try {
         context.startActivity(
             android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url))
+                .setPackage(WECHAT_PACKAGE)
                 .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     } catch (_: Exception) {
-        android.widget.Toast.makeText(context, "没有可打开此链接的应用", android.widget.Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "未安装微信，请使用浏览器打开", Toast.LENGTH_SHORT).show()
+        onFailure()
+    }
+}
+
+private fun openExternal(context: android.content.Context, url: String) {
+    try {
+        val uri = Uri.parse(url)
+        val intent = if (uri.scheme.equals("intent", ignoreCase = true)) {
+            android.content.Intent.parseUri(url, android.content.Intent.URI_INTENT_SCHEME)
+        } else {
+            android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+        }
+        context.startActivity(intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: Exception) {
+        Toast.makeText(context, "没有可打开此链接的应用，请先安装微信或使用浏览器", Toast.LENGTH_SHORT).show()
     }
 }

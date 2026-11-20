@@ -21,7 +21,7 @@ import com.xynu.campus.ui.common.ErrorHint
 import com.xynu.campus.ui.common.LoadingBox
 
 /**
- * 空教室查询（经后端调用正方 V9 空教室接口）。
+ * 空教室查询（使用当前教务会话直连正方 V9 空教室接口）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +95,8 @@ fun FreeClassroomScreen(
                     state.roomsError != null -> ErrorHint(
                         state.roomsError!!,
                         onRetry = { vm.loadFreeRooms(selectedSection) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onSecondary = onNeedLogin
                     )
                     state.rooms.isEmpty() -> EmptyHint("该节次暂无空闲教室数据", Modifier.weight(1f))
                     else -> LazyColumn(

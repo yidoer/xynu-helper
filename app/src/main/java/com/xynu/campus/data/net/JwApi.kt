@@ -6,6 +6,7 @@ import com.xynu.campus.data.model.JwLoginResult
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
 import com.xynu.campus.data.parser.JwParser
+import java.io.IOException
 import java.time.LocalDate
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
@@ -31,6 +32,54 @@ data class FreeClassroomResult(
     val rooms: List<String>,
     val query: FreeClassroomQuery
 )
+
+enum class JwHttpErrorKind {
+    INVALID_QUERY,
+    SERVER_REJECTED,
+}
+
+/** 保留教务非 2xx 响应，避免把业务码误显示成无上下文的通用异常。 */
+class JwHttpException(
+    val statusCode: Int,
+    val endpoint: String,
+    val responseBody: String,
+) : RuntimeException("HTTP $statusCode") {
+    val kind: JwHttpErrorKind
+        get() = classifyJwHttpError(statusCode, responseBody)
+}
+
+internal fun isJwSessionExpiredStatus(statusCode: Int): Boolean = statusCode == 901 || statusCode == 910
+
+internal fun classifyJwHttpError(statusCode: Int, responseBody: String): JwHttpErrorKind {
+    val body = responseBody.lowercase()
+    return when {
+        statusCode == 400 || statusCode == 422 -> JwHttpErrorKind.INVALID_QUERY
+        listOf("参数", "学期", "星期", "节次", "xnm", "xqm", "xqj", "jch")
+            .any(body::contains) -> JwHttpErrorKind.INVALID_QUERY
+        else -> JwHttpErrorKind.SERVER_REJECTED
+    }
+}
+
+/** 构造正方 V9 空教室接口实际使用的字段，供请求和 JVM 单测共用。 */
+internal fun buildFreeClassroomForm(query: FreeClassroomQuery): List<Pair<String, String>> = listOf(
+    "xnm" to query.xnm,
+    "xqm" to query.xqm,
+    "xqj" to query.xqj.toString(),
+    "jxlid" to "",
+    "jch" to query.section.toString(),
+    "jcsj" to "",
+)
+
+internal fun freeClassroomErrorMessage(error: Throwable): String = when (error) {
+    is JwHttpException -> when (error.kind) {
+        JwHttpErrorKind.INVALID_QUERY ->
+            "查询参数不合法（HTTP ${error.statusCode}），请检查当前学期、日期和节次后重试"
+        JwHttpErrorKind.SERVER_REJECTED ->
+            "教务服务器拒绝了空教室查询（HTTP ${error.statusCode}），请重试；若持续失败，请重新登录"
+    }
+    is IOException -> "网络失败，无法连接教务服务器，请检查网络后重试"
+    else -> "空教室查询失败：${error.message ?: "未知错误"}"
+}
 
 /** 纯条件构造，日期和学期均可在单测中显式传入。 */
 fun buildFreeClassroomQuery(
@@ -119,7 +168,13 @@ class JwApi(
         if (ajax) builder.header("X-Requested-With", "XMLHttpRequest")
         client.newCall(builder.build()).execute().use { resp ->
             val body = resp.body?.string() ?: ""
-            if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
+            if (!resp.isSuccessful) {
+                // 910 是教务服务器对空教室查询的会话/线路拒绝码，应映射到会话失效而不是服务器错误。
+                if (requireSession && isJwSessionExpiredStatus(resp.code)) {
+                    throw SessionExpiredException(SessionKind.JW, resp.request.url.host)
+                }
+                throw JwHttpException(resp.code, resp.request.url.toString(), body.take(4096))
+            }
             return body
         }
     }
@@ -138,7 +193,13 @@ class JwApi(
         if (requireSession) builder.requireSession(SessionKind.JW)
         client.newCall(builder.build()).execute().use { resp ->
             val body = resp.body?.string() ?: ""
-            if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
+            if (!resp.isSuccessful) {
+                // 910 是教务服务器对空教室查询的会话/线路拒绝码，应映射到会话失效而不是服务器错误。
+                if (requireSession && isJwSessionExpiredStatus(resp.code)) {
+                    throw SessionExpiredException(SessionKind.JW, resp.request.url.host)
+                }
+                throw JwHttpException(resp.code, resp.request.url.toString(), body.take(4096))
+            }
             return body
         }
     }
@@ -352,13 +413,7 @@ class JwApi(
         val base = activeBase
         val today = LocalDate.now()
         val indexUrl = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508"
-        val indexHtml = try {
-            get(indexUrl, requireSession = true)
-        } catch (e: SessionExpiredException) {
-            throw e
-        } catch (_: Exception) {
-            ""
-        }
+        val indexHtml = get(indexUrl, requireSession = true)
         val selectedTerm = indexHtml.takeIf { it.isNotBlank() }?.let(parser::parseSelectedTerm)
         val query = buildFreeClassroomQuery(
             date = today,
@@ -366,14 +421,9 @@ class JwApi(
             term = selectedTerm,
             termSource = if (selectedTerm == null) "未读到教务当前选项，按日期推算" else "教务页面当前选项"
         )
-        val form = FormBody.Builder()
-            .add("xnm", query.xnm)
-            .add("xqm", query.xqm)
-            .add("xqj", query.xqj.toString())
-            .add("jxlid", "")
-            .add("jch", query.section.toString())
-            .add("jcsj", "")
-            .build()
+        val form = FormBody.Builder().apply {
+            buildFreeClassroomForm(query).forEach { (name, value) -> add(name, value) }
+        }.build()
         val html = post("$base/kbcx/xskbcx_cxKxJscxKb.html?gnmkdm=N253508", form,
             referer = indexUrl,
             requireSession = true)

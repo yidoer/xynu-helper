@@ -13,6 +13,7 @@ import com.xynu.campus.data.net.JwApi
 import com.xynu.campus.data.net.RequestCoordinator
 import com.xynu.campus.data.net.SessionExpiredException
 import com.xynu.campus.data.net.buildFreeClassroomQuery
+import com.xynu.campus.data.net.freeClassroomErrorMessage
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
 import java.time.LocalDate
@@ -393,7 +394,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 if (!freeRoomsRequests.isCurrent(requestId)) return@launch
                 _state.value = _state.value.copy(
                     loadingRooms = false,
-                    roomsError = e.message ?: "空教室查询失败"
+                    roomsError = freeClassroomErrorMessage(e)
                 )
             }
         }

@@ -160,7 +160,13 @@ fun LoadingBox(modifier: Modifier = Modifier, text: String = "加载中…") {
 
 /** 错误提示 */
 @Composable
-fun ErrorHint(message: String, onRetry: (() -> Unit)? = null, modifier: Modifier = Modifier) {
+fun ErrorHint(
+    message: String,
+    onRetry: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    onSecondary: (() -> Unit)? = null,
+    secondaryLabel: String = "去登录"
+) {
     Column(
         modifier = modifier.fillMaxWidth().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -171,6 +177,10 @@ fun ErrorHint(message: String, onRetry: (() -> Unit)? = null, modifier: Modifier
         if (onRetry != null) {
             Spacer(Modifier.height(12.dp))
             OutlinedButton(onClick = onRetry) { Text("重试") }
+        }
+        if (onSecondary != null) {
+            Spacer(Modifier.height(4.dp))
+            TextButton(onClick = onSecondary) { Text(secondaryLabel) }
         }
     }
 }
