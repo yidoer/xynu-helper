@@ -29,26 +29,30 @@ class LibApi(
 ) {
     val base = "http://222.21.62.201:8011"
 
-    private fun get(url: String): String {
-        val req = Request.Builder().url(url).get().build()
-        client.newCall(req).execute().use { resp ->
+    private fun get(url: String, requireSession: Boolean = false): String {
+        val builder = Request.Builder().url(url).get()
+        if (requireSession) builder.requireSession(SessionKind.LIB)
+        client.newCall(builder.build()).execute().use { resp ->
             val body = resp.body?.string() ?: ""
             if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
             return body
         }
     }
 
-    private fun getOrNull(url: String): String? {
+    private fun getOrNull(url: String, requireSession: Boolean = false): String? {
         return try {
-            get(url)
+            get(url, requireSession)
+        } catch (e: SessionExpiredException) {
+            throw e
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun post(url: String, form: FormBody): String {
-        val req = Request.Builder().url(url).post(form).build()
-        client.newCall(req).execute().use { resp ->
+    private fun post(url: String, form: FormBody, requireSession: Boolean = false): String {
+        val builder = Request.Builder().url(url).post(form)
+        if (requireSession) builder.requireSession(SessionKind.LIB)
+        client.newCall(builder.build()).execute().use { resp ->
             val body = resp.body?.string() ?: ""
             if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
             return body
@@ -97,7 +101,7 @@ class LibApi(
 
     /** 我的借阅（需登录） */
     suspend fun myBorrowed(): List<BorrowItem> {
-        val html = get("$base/opac/mylibrary")
+        val html = get("$base/opac/mylibrary", requireSession = true)
         return parser.parseBorrowList(html)
     }
 
@@ -111,8 +115,10 @@ class LibApi(
             "$base/opac/reader/history"
         )
         for (url in candidates) {
-            val html = getOrNull(url) ?: continue
-            if (html.contains("登录") && html.contains("密码")) continue
+            val html = getOrNull(url, requireSession = true) ?: continue
+            if (html.contains("登录") && html.contains("密码")) {
+                throw SessionExpiredException(SessionKind.LIB, base.removePrefix("http://").substringBefore('/'))
+            }
             val list = try {
                 parser.parseBorrowHistory(html)
             } catch (_: Exception) {
@@ -125,15 +131,33 @@ class LibApi(
 
     /** 读者信息（借阅中/应还） */
     suspend fun readerInfo(): Pair<String, Int> {
-        val html = get("$base/opac/mylibrary")
+        val html = get("$base/opac/mylibrary", requireSession = true)
         return parser.parseReaderInfo(html)
     }
 
     /** 综合统计：合并 mylibrary 与 history，返回读者整体状态 */
     suspend fun readerStats(): ReaderStats {
-        val borrowed = try { myBorrowed() } catch (_: Exception) { emptyList() }
-        val history = try { borrowHistory() } catch (_: Exception) { emptyList() }
-        val (name, _) = try { readerInfo() } catch (_: Exception) { Pair("", 0) }
+        val borrowed = try {
+            myBorrowed()
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val history = try {
+            borrowHistory()
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val (name, _) = try {
+            readerInfo()
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) {
+            Pair("", 0)
+        }
 
         val today = java.util.Calendar.getInstance()
         var overdue = 0
@@ -184,7 +208,11 @@ class LibApi(
             .add("bookId", bookId)
             .add("userType", "IN")
             .build()
-        val req = Request.Builder().url(url).post(form).build()
+        val req = Request.Builder()
+            .url(url)
+            .post(form)
+            .requireSession(SessionKind.LIB)
+            .build()
         client.newCall(req).execute().use { resp ->
             val body = resp.body?.string() ?: ""
             if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")

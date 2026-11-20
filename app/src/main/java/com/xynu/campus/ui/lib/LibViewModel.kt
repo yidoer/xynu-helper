@@ -10,8 +10,10 @@ import com.xynu.campus.data.model.BorrowHistoryItem
 import com.xynu.campus.data.model.BorrowItem
 import com.xynu.campus.data.model.FavoriteBook
 import com.xynu.campus.data.model.ReaderStats
+import com.xynu.campus.data.net.AppCookieJar
 import com.xynu.campus.data.net.HttpClientFactory
 import com.xynu.campus.data.net.LibApi
+import com.xynu.campus.data.net.SessionExpiredException
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +48,8 @@ data class LibUiState(
     val loadingDetail: Boolean = false,
     val bookDetail: BookDetail? = null,
     val detailError: String? = null,
-    val favorites: List<FavoriteBook> = emptyList()
+    val favorites: List<FavoriteBook> = emptyList(),
+    val sessionExpired: Boolean = false
 )
 
 class LibViewModel(application: Application) : AndroidViewModel(application) {
@@ -55,6 +58,31 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(LibUiState())
     val state: StateFlow<LibUiState> = _state.asStateFlow()
 
+    private fun handleSessionExpired(error: SessionExpiredException) {
+        AppCookieJar.clear(error.host)
+        _state.value = _state.value.copy(
+            loggedIn = false,
+            sessionExpired = true,
+            checkingLogin = false,
+            loadingBorrow = false,
+            renewing = null,
+            renewMessage = null,
+            loadingHistory = false,
+            loadingDetail = false,
+            borrowList = emptyList(),
+            historyList = emptyList(),
+            stats = null,
+            borrowError = null,
+            historyError = null,
+            detailError = null,
+            loginMessage = "图书馆登录已过期，请重新登录"
+        )
+    }
+
+    fun consumeSessionExpired() {
+        _state.value = _state.value.copy(sessionExpired = false)
+    }
+
     init {
         // 持续观察收藏变化（DataStore Flow）
         viewModelScope.launch {
@@ -62,6 +90,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = _state.value.copy(favorites = list)
             }
         }
+        autoLogin()
     }
 
     fun checkLogin() {
@@ -71,8 +100,15 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 // 用 readerStats 探测：未登录时服务端会重定向到登录页，这里直接抛异常
                 withContext(Dispatchers.IO) { api.readerStats() }
                 true
-            } catch (e: Exception) { false }
-            _state.value = _state.value.copy(loggedIn = ok, checkingLogin = false)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
+                false
+            } catch (_: Exception) {
+                false
+            }
+            if (!_state.value.sessionExpired) {
+                _state.value = _state.value.copy(loggedIn = ok, checkingLogin = false)
+            }
         }
     }
 
@@ -82,7 +118,11 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         viewModelScope.launch {
-            _state.value = _state.value.copy(loggingIn = true, loginMessage = "")
+            _state.value = _state.value.copy(
+                loggingIn = true,
+                loginMessage = "",
+                sessionExpired = false
+            )
             val err = try {
                 withContext(Dispatchers.IO) { api.login(username.trim(), password) }
             } catch (e: Exception) {
@@ -136,6 +176,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { CredentialsStore.clearLib(getApplication()) }
+            AppCookieJar.clear(java.net.URI(api.base).host)
             _state.value = LibUiState()
         }
     }
@@ -177,9 +218,11 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val list = withContext(Dispatchers.IO) { api.myBorrowed() }
                 _state.value = _state.value.copy(loadingBorrow = false, borrowList = list, loggedIn = true)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 val msg = e.message ?: "加载借阅记录失败"
-                // 服务端返回登录页/未授权时，判定为会话失效，清空状态要求重新登录
+                // 保留服务端显式未授权的兼容判断；登录页本身由 SessionInterceptor 统一识别。
                 val isAuthError = msg.contains("登录") || msg.contains("未授权") ||
                     msg.contains("HTTP 4") || msg.contains("HTTP 302")
                 _state.value = _state.value.copy(
@@ -208,6 +251,8 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 val msg = withContext(Dispatchers.IO) { api.renew(barcode, bookId, renewUrl) }
                 _state.value = _state.value.copy(renewing = null, renewMessage = msg)
                 loadBorrowed()  // 刷新
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     renewing = null,
@@ -224,6 +269,8 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val stats = withContext(Dispatchers.IO) { api.readerStats() }
                 _state.value = _state.value.copy(stats = stats, loggedIn = true)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (_: Exception) {
                 // 静默失败：统计是辅助信息
             }
@@ -238,6 +285,8 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val list = withContext(Dispatchers.IO) { api.borrowHistory() }
                 _state.value = _state.value.copy(loadingHistory = false, historyList = list)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loadingHistory = false,
@@ -255,6 +304,8 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val detail = withContext(Dispatchers.IO) { api.getBookDetail(bookId) }
                 _state.value = _state.value.copy(loadingDetail = false, bookDetail = detail)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loadingDetail = false,

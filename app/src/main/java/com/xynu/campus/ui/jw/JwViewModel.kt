@@ -7,8 +7,10 @@ import com.xynu.campus.data.model.Course
 import com.xynu.campus.data.model.JwLoginResult
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
+import com.xynu.campus.data.net.AppCookieJar
 import com.xynu.campus.data.net.HttpClientFactory
 import com.xynu.campus.data.net.JwApi
+import com.xynu.campus.data.net.SessionExpiredException
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +47,7 @@ data class JwUiState(
     val todayDayOfWeek: Int = 1,
     val loggedIn: Boolean = false,
     val checkingLogin: Boolean = false,
+    val sessionExpired: Boolean = false,
     // 空教室
     val loadingRooms: Boolean = false,
     val rooms: List<String> = emptyList(),
@@ -59,6 +62,29 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     private val api = JwApi(HttpClientFactory.create())
     private val _state = MutableStateFlow(JwUiState())
     val state: StateFlow<JwUiState> = _state.asStateFlow()
+
+    private fun handleSessionExpired(error: SessionExpiredException) {
+        AppCookieJar.clear(error.host)
+        _state.value = _state.value.copy(
+            loggedIn = false,
+            sessionExpired = true,
+            loadingSchedule = false,
+            loadingScores = false,
+            loadingRooms = false,
+            schedule = emptyList(),
+            scores = emptyList(),
+            terms = emptyList(),
+            rooms = emptyList(),
+            scheduleError = null,
+            scoreError = null,
+            roomsError = null,
+            loginMessage = "教务系统登录已过期，请重新登录"
+        )
+    }
+
+    fun consumeSessionExpired() {
+        _state.value = _state.value.copy(sessionExpired = false)
+    }
 
     init {
         // 加载开学日期 + 按系统日历计算当前周 + 星期，并持续刷新（跨天/跨周自动跳）
@@ -100,7 +126,11 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         viewModelScope.launch {
-            _state.value = _state.value.copy(loggingIn = true, loginMessage = "")
+            _state.value = _state.value.copy(
+                loggingIn = true,
+                loginMessage = "",
+                sessionExpired = false
+            )
             val result = try {
                 withContext(Dispatchers.IO) { api.login(username.trim(), password) }
             } catch (e: Exception) {
@@ -153,6 +183,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         viewModelScope.launch {
             try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (_: Exception) { }
+            api.hosts.forEach(AppCookieJar::clear)
             _state.value = JwUiState()
         }
     }
@@ -171,11 +202,12 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     schedule = list,
                     scheduleTerm = useTerm ?: _state.value.scheduleTerm
                 )
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loadingSchedule = false,
-                    scheduleError = e.message ?: "加载课表失败",
-                    loggedIn = false
+                    scheduleError = e.message ?: "加载课表失败"
                 )
             }
         }
@@ -200,6 +232,8 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val terms = withContext(Dispatchers.IO) { api.fetchTermOptions() }
                 _state.value = _state.value.copy(scheduleTerms = terms)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (_: Exception) { }
         }
     }
@@ -248,6 +282,8 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 _state.value = _state.value.copy(terms = terms, selectedTerm = initial)
                 loadScores(initial)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (_: Exception) {
                 // 学期获取失败：兜底用当前学年
                 val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
@@ -282,11 +318,12 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val list = withContext(Dispatchers.IO) { api.fetchScores(term.xnm, term.xqm) }
                 _state.value = _state.value.copy(loadingScores = false, scores = list)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loadingScores = false,
-                    scoreError = e.message ?: "加载成绩失败",
-                    loggedIn = false
+                    scoreError = e.message ?: "加载成绩失败"
                 )
             }
         }
@@ -299,6 +336,8 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val rooms = withContext(Dispatchers.IO) { api.fetchFreeClassrooms(jc) }
                 _state.value = _state.value.copy(loadingRooms = false, rooms = rooms)
+            } catch (e: SessionExpiredException) {
+                handleSessionExpired(e)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     loadingRooms = false,

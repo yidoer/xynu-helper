@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -70,6 +71,21 @@ fun CampusApp() {
     // ViewModel 提升到 Activity 级作用域，登录状态/数据在页面间共享
     val jwVm: JwViewModel = viewModel()
     val libVm: LibViewModel = viewModel()
+    val jwState by jwVm.state.collectAsState()
+    val libState by libVm.state.collectAsState()
+
+    LaunchedEffect(jwState.sessionExpired) {
+        if (jwState.sessionExpired) {
+            jwVm.consumeSessionExpired()
+            navController.navigate(Routes.JW_LOGIN) { launchSingleTop = true }
+        }
+    }
+    LaunchedEffect(libState.sessionExpired) {
+        if (libState.sessionExpired) {
+            libVm.consumeSessionExpired()
+            navController.navigate(Routes.LIB_LOGIN) { launchSingleTop = true }
+        }
+    }
 
     NavHost(navController = navController, startDestination = Routes.HOME) {
 

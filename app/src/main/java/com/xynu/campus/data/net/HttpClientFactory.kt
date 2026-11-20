@@ -12,9 +12,11 @@ object HttpClientFactory {
     fun create(): OkHttpClient {
         return OkHttpClient.Builder()
             .cookieJar(AppCookieJar)
+            // 校园系统偶发不可达，避免页面长时间停在空白加载态。
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(25, TimeUnit.SECONDS)
-            .writeTimeout(25, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .addInterceptor(SessionInterceptor())
             .followRedirects(true)
             .followSslRedirects(true)
             .retryOnConnectionFailure(true)

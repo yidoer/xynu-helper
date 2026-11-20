@@ -40,6 +40,16 @@ object AppCookieJar : CookieJar {
         return valid
     }
 
+    /** 清理指定域名的会话 Cookie；登录失效时只影响对应系统/线路。 */
+    fun clear(host: String) {
+        InMemoryCookieStore.map.remove(host)
+    }
+
+    /** 清理所有应用内会话 Cookie；主动退出登录时使用。 */
+    fun clearAll() {
+        InMemoryCookieStore.map.clear()
+    }
+
     /** 获取某域名当前有效的 Cookie 头片段（供 WebView CookieManager 同步）。
      *  兼容精确域名 + 父域名回退：cookie 可能按 jwgl.xynu.edu.cn 或 .xynu.edu.cn 存储。 */
     fun cookieHeaderFor(host: String): String? {

@@ -46,8 +46,14 @@ class JwApi(
 
     private val activeBase: String get() = "$activeHost/jwglxt"
 
-    private fun get(url: String, referer: String? = null, ajax: Boolean = false): String {
+    private fun get(
+        url: String,
+        referer: String? = null,
+        ajax: Boolean = false,
+        requireSession: Boolean = false
+    ): String {
         val builder = Request.Builder().url(url).get()
+        if (requireSession) builder.requireSession(SessionKind.JW)
         if (referer != null) builder.header("Referer", referer)
         if (ajax) builder.header("X-Requested-With", "XMLHttpRequest")
         client.newCall(builder.build()).execute().use { resp ->
@@ -57,14 +63,19 @@ class JwApi(
         }
     }
 
-    private fun post(url: String, form: RequestBody, referer: String): String {
-        val req = Request.Builder()
+    private fun post(
+        url: String,
+        form: RequestBody,
+        referer: String,
+        requireSession: Boolean = false
+    ): String {
+        val builder = Request.Builder()
             .url(url)
             .header("Referer", referer)
             .header("X-Requested-With", "XMLHttpRequest")
             .post(form)
-            .build()
-        client.newCall(req).execute().use { resp ->
+        if (requireSession) builder.requireSession(SessionKind.JW)
+        client.newCall(builder.build()).execute().use { resp ->
             val body = resp.body?.string() ?: ""
             if (!resp.isSuccessful) throw RuntimeException("HTTP ${resp.code}")
             return body
@@ -175,8 +186,9 @@ class JwApi(
     suspend fun fetchSchedule(xnm: String? = null, xqm: String? = null): List<Course> {
         val base = activeBase
         val index = get("$base/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508",
-            referer = "$base/xtgl/index_initMenu.html?gnmkdm=N253508")
-        if (index.contains("login_slogin")) throw RuntimeException("登录已过期，请重新登录")
+            referer = "$base/xtgl/index_initMenu.html?gnmkdm=N253508",
+            requireSession = true)
+        if (index.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
         // 学期候选：明确指定 → 服务端标记的当前学期 → 按当前学年推算 → 下拉框里的年份
         val candidates = if (xnm != null && xqm != null) {
             listOf(xnm to xqm)
@@ -198,11 +210,14 @@ class JwApi(
                 .build()
             val html = try {
                 post("$base/kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508", form,
-                    referer = "$base/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508")
+                    referer = "$base/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508",
+                    requireSession = true)
+            } catch (e: SessionExpiredException) {
+                throw e
             } catch (_: Exception) {
                 continue
             }
-            if (html.contains("login_slogin")) throw RuntimeException("登录已过期，请重新登录")
+            if (html.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
             if (html.trim() == "null" || html.isBlank()) continue
             val list = try { parser.parseSchedule(html) } catch (_: Exception) { emptyList() }
             if (list.isNotEmpty()) return list
@@ -244,7 +259,11 @@ class JwApi(
 
     suspend fun fetchScores(xnm: String, xqm: String): List<ScoreItem> {
         val base = activeBase
-        try { get("$base/cjcx/cjcx_cxXscjIndex.html?gnmkdm=N305005") } catch (_: Exception) { }
+        try {
+            get("$base/cjcx/cjcx_cxXscjIndex.html?gnmkdm=N305005", requireSession = true)
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) { }
         val form = FormBody.Builder()
             .add("xnm", xnm)
             .add("xqm", xqm)
@@ -257,8 +276,9 @@ class JwApi(
             .add("time", "1")
             .build()
         val html = post("$base/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005", form,
-            referer = "$base/cjcx/cjcx_cxXscjIndex.html?gnmkdm=N305005")
-        if (html.contains("login_slogin")) throw RuntimeException("登录已过期，请重新登录")
+            referer = "$base/cjcx/cjcx_cxXscjIndex.html?gnmkdm=N305005",
+            requireSession = true)
+        if (html.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
         return parser.parseScores(html)
     }
 
@@ -266,7 +286,11 @@ class JwApi(
 
     suspend fun fetchFreeClassrooms(jc: Int = 1): List<String> {
         val base = activeBase
-        try { get("$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508") } catch (_: Exception) { }
+        try {
+            get("$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508", requireSession = true)
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) { }
         val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
         val form = FormBody.Builder()
             .add("xnm", "${year - 1}")
@@ -277,15 +301,19 @@ class JwApi(
             .add("jcsj", "")
             .build()
         val html = post("$base/kbcx/xskbcx_cxKxJscxKb.html?gnmkdm=N253508", form,
-            referer = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508")
-        if (html.contains("login_slogin")) throw RuntimeException("登录已过期，请重新登录")
+            referer = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508",
+            requireSession = true)
+        if (html.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
         return parser.parseFreeClassrooms(html)
     }
 
     // ================= 学期 =================
 
     suspend fun fetchTermOptions(): List<TermOption> {
-        val html = get("$activeBase/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508")
+        val html = get(
+            "$activeBase/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N253508",
+            requireSession = true
+        )
         return parser.parseTermOptions(html)
     }
 
