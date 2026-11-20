@@ -27,8 +27,7 @@ import com.xynu.campus.ui.theme.XynuBlue
 fun LibLoginScreen(
     vm: LibViewModel,
     onBack: () -> Unit,
-    onSuccess: () -> Unit,
-    onOpenChaoxing: () -> Unit = {}
+    onSuccess: () -> Unit
 ) {
     val state by vm.state.collectAsState()
     var username by remember { mutableStateOf("") }
@@ -119,15 +118,6 @@ fun LibLoginScreen(
                 } else {
                     Text("登 录", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-            }
-
-            Spacer(Modifier.height(10.dp))
-            OutlinedButton(
-                onClick = onOpenChaoxing,
-                modifier = Modifier.fillMaxWidth().height(46.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text("校外访问：打开超星图书馆", fontSize = 14.sp)
             }
 
             Spacer(Modifier.height(12.dp))

@@ -41,7 +41,6 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenJwLogin: () -> Unit,
     onOpenLibLogin: () -> Unit,
-    onOpenChaoxing: () -> Unit = {},
     onOpenWeb: (String, String?) -> Unit = { _, _ -> },
     vm: HomeViewModel = viewModel()
 ) {
@@ -151,17 +150,6 @@ fun HomeScreen(
                         // 该 SPA 在原生 WebView 中渲染异常（JS 启动但页面空白），改用外部浏览器打开
                         FeatureTile(Icons.Filled.EventSeat, "座位预约", tint = Color(0xFF2E7D32),
                             onClick = { openInBrowser(context, "http://libspace.xynu.edu.cn/h5/#/login") }, modifier = Modifier.weight(1f))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    Row(Modifier.fillMaxWidth()) {
-                        FeatureTile(
-                            Icons.Filled.Language,
-                            "超星图书馆",
-                            tint = XynuBlue,
-                            onClick = onOpenChaoxing,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.weight(3f))
                     }
                 }
             }

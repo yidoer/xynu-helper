@@ -51,17 +51,23 @@ import com.xynu.campus.ui.common.AppTopBar
 private const val RequestedChaoxingUrl =
     "https://mobilelib.wx.chaoxing.com/weixin/hall/showNew?pid=1512&type=8"
 
+private const val WeChatMobileUserAgent =
+    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 " +
+        "Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36 " +
+        "MicroMessenger/8.0.43(0x28002B36) NetType/WIFI Language/zh_CN"
+
 /**
- * 超星移动图书馆入口。
+ * 空教室查询的超星 WebView 入口。
  *
- * 超星的登录、检索、借阅和续借都在站点内完成，不把账号密码交给 App。
- * 仅允许 chaoxing.com 相关页面继续留在 WebView，普通外链交给系统浏览器。
+ * 页面本身负责微信绑定/授权和空教室查询，App 不接触账号密码。
+ * 所有正常 http(s) 页面（包括 OAuth 重定向）留在 WebView；
+ * 微信专属 scheme 交给系统处理，未安装微信时由 fallback/错误提示兜底。
  */
 @Composable
-fun ChaoxingLibraryScreen(
+fun EmptyClassroomWebScreen(
     onBack: () -> Unit,
     onFallback: (() -> Unit)? = null,
-    initialTitle: String = "超星图书馆"
+    initialTitle: String = "空教室查询"
 ) {
     val context = LocalContext.current
     var webView by remember { mutableStateOf<WebView?>(null) }
@@ -142,7 +148,7 @@ fun ChaoxingLibraryScreen(
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(30.dp), strokeWidth = 3.dp)
                     Spacer(Modifier.height(10.dp))
-                    Text("正在打开超星图书馆…", fontSize = 13.sp, color = Color(0xFF8E8E93))
+                    Text("正在打开空教室查询…", fontSize = 13.sp, color = Color(0xFF8E8E93))
                 }
             }
 
@@ -199,6 +205,7 @@ private fun WebView.configureChaoxingWebView(
     settings.setSupportZoom(true)
     settings.builtInZoomControls = true
     settings.displayZoomControls = false
+    settings.userAgentString = WeChatMobileUserAgent
 
     val cookieManager = CookieManager.getInstance()
     cookieManager.setAcceptCookie(true)
@@ -244,16 +251,12 @@ private fun WebView.configureChaoxingWebView(
 }
 
 private fun handleNavigation(url: String, onOpenExternal: (String) -> Unit): Boolean {
-    val uri = Uri.parse(url)
-    val scheme = uri.scheme?.lowercase()
-    if (scheme != "http" && scheme != "https") {
-        onOpenExternal(url)
-        return true
-    }
-    val host = uri.host?.lowercase().orEmpty()
-    return if (host == "chaoxing.com" || host.endsWith(".chaoxing.com")) {
+    val scheme = Uri.parse(url).scheme?.lowercase()
+    return if (scheme == "http" || scheme == "https") {
+        // 超星、chaoxing.com、OAuth 回调及其后续普通网页都留在 App 内。
         false
     } else {
+        // 例如 weixin:// 等微信专属 scheme：交给系统尝试拉起微信。
         onOpenExternal(url)
         true
     }
@@ -277,7 +280,7 @@ private fun enqueueDownload(
         val request = DownloadManager.Request(uri).apply {
             setMimeType(mimeType)
             setTitle(fileName)
-            setDescription("超星图书馆下载")
+            setDescription("空教室查询下载")
             setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName)
             addRequestHeader("User-Agent", userAgent ?: WebSettings.getDefaultUserAgent(context))
