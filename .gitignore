@@ -1,0 +1,27 @@
+# Gradle / 构建产物
+.gradle/
+build/
+.kotlin/
+
+# 本地环境
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# APK / 安装包
+*.apk
+*.ap_
+*.aab
+
+# 签名密钥与密码（绝不提交）
+*.jks
+*.keystore
+keystore.properties
+*.keystore.properties
+
+# 构建日志
+build-log*.txt

@@ -1,0 +1,3277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wb="http://open.weibo.com/wb">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge;chrome=1" />
+	<!-- <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" /> -->
+	<link type="text/css" rel="stylesheet" href="/scripts/autocomplete/jquery.autocomplete.css" />
+	<script src="/scripts/jquerynew.js" type="text/javascript"></script>
+
+	<link type="text/css" rel="stylesheet" href="/styles/opac/goldlib-opac.css" />
+<!--[if lt IE 9]>
+<link type="text/css" rel="stylesheet" href="/styles/opac/ie8.css" />
+<![endif]-->
+<link type="text/css" rel="stylesheet" href="/styles/opac/skins/blue/skins-opac.css" />
+<link type="text/css" rel="stylesheet" href="/styles/opac/language/zh_CN.css" /><script src="/scripts/autocomplete/jquery.autocomplete.js" type="text/javascript"></script>
+	<script type="text/javascript" src="/scripts/opac/common/common.js"></script>
+	<link rel="shortcut icon" href="/favicon.ico">
+	<title>检索结果_图书馆</title>
+	<style media="screen" type="text/css">
+#swf {
+	visibility: hidden;
+	position: relative;
+}
+</style>
+
+<!--Swiper-->
+	<link href="/scripts/Swiper/swiper.min.css" type="text/css" rel="stylesheet" />
+     <style>
+    .s-main-books {
+      width: 100%;
+      min-height: 300px;
+      position: relative;
+      margin-top: 10px;      
+    }
+    .swiper-container {
+      width: 87%;
+      height: 100%;
+      margin:15px auto 0;
+      padding:0 5%;
+    }
+    .swiper-container:before{
+    content:"";
+    width:5%;
+    height:100%;    
+    background:#fff;
+    left:0;
+    top:0;
+    position:absolute;
+    z-index:9;
+    }
+    .swiper-container:after{
+    content:"";
+    width:5%;
+    height:100%;    
+    background:#fff;
+    right:0;
+    top:0;
+    position:absolute;
+    z-index:9;
+    }
+    .swiper-slide {
+      text-align: center;
+      font-size: 12px;
+      /* Center slide text vertically */
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-box-pack: center;
+      -ms-flex-pack: center;
+      -webkit-justify-content: center;
+      justify-content: center;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      -webkit-align-items: center;
+      align-items: center;
+    }
+  </style>
+  <!-- Swiper -->
+  
+        <script src="/scripts/highcharts2020/highcharts.js"></script>
+        <script src="/scripts/highcharts2020/modules/exporting.js"></script>
+        <script src="/scripts/highcharts2020/modules/wordcloud.js"></script>
+        <script src="/scripts/highcharts2020/modules/oldie.js"></script>
+	
+
+	<script src="/scripts/jquery.highlight.js" type="text/javascript"></script>
+	<script src="/scripts/rest.js"></script>
+	<script src="/scripts/main.js" type="text/javascript"></script>
+	<script type="text/javascript"
+		src="/scripts/3dLable/swfobject.js"></script>
+	<script src="/scripts/weebox/bgiframe.js" type="text/javascript"></script>
+	<script src="/scripts/weebox/weebox.js" type="text/javascript"></script>
+	<link href="/scripts/weebox/weebox.css" type="text/css"
+		rel="stylesheet" />
+	<script type="text/javascript"
+		src="/scripts/jq_tree/jquery.treeview.js"></script>
+	<script type="text/javascript"
+		src="/scripts/jq_tree/jquery.treeview.async.js"></script>
+		
+   <script src="/scripts/aes.js" type="text/javascript"></script>
+   
+   
+
+   
+   
+   
+	<link type="text/css" href="/scripts/jq_tree/jquery.treeview.css"
+		rel="stylesheet" />
+<script type="text/javascript">
+		$.ajaxSetup({
+			 async : false ,
+			 cache: false 
+		});  
+	</script>
+	<!--[if IE 6]>
+		<script src="/scripts/libweb/DD_belatedPNG_0.0.8a-min.js"></script>
+		<script>
+			DD_belatedPNG.fix('img,span,div');
+		</script>
+	<![endif]-->
+</head>
+<body screen_capture_injected="true">
+	<div class="jp-wrap">
+		<script type="text/javascript">
+	$(document).ready(function() {
+		$("#search").attr("class", "active");
+		$("#searchresult").attr("class", "current");
+	});
+</script>
+<link rel="shortcut icon" href="/favicon.ico">
+<div class="jp-header">
+  <div class="jp-logo">
+  	<div class="container">
+        <h1 class="col-7"><a href="/">图书馆</a></h1>
+        <div class="jp-welcomes col-5">
+          <a href="/opac/login?locale=zh_CN" class="btn">登录</a>
+            <a href="/opac/opacRssCollect" class="rss" title="Rss订阅"><img alt="Rss订阅" src="/styles/opac/images/sy.gif" /></a>
+          
+          </div>
+      </div>
+  </div>
+  <div class="jp-nav">
+    <div class="nav-items container">
+      <ul class="nav-menu">
+        <li><a href="/opac/search/simsearch" id="search">书目检索</a></li>
+        <li><a href="/opac/browseByCategory" id="cls_browsing">分类浏览</a></li>
+        <li><a href="/opac/hotLend" id="hot_search">热门推荐</a></li>
+        <li><a href="/opac/newBook" id="newbook">新书通报</a></li>
+        <li><a href="/opac/journalYearOrder" id="journalGuide">期刊导航</a></li>
+        <li><a href="/opac/recn" id="recommend">读者荐购</a></li>
+
+        <li><a href="/opac/opacNews" id="news">信息发布</a></li>
+<li><a href="/opac/mylibrary" id="aboutus">我的图书馆</a></li>
+        </ul>
+    </div>
+  </div>
+  <div class="jp-subnav">
+    <div class="nav-items container">
+      <ul class="nav-menu">
+        <li><a href="/opac/search/simsearch" id="simsearch">简单检索</a></li>
+          <li><a href="/opac/search/multiFieldSearch" id="multiFieldSearch">多字段检索</a></li>
+          <li><a href="/opac/search/combineSearch" id="combineSearch">组合检索</a></li>
+        <li><a id="searchresult">检索结果</a></li>
+        </ul>
+    </div>
+  </div>
+</div>
+<div class="jp-listSearch">
+		<div class="container">
+			<script type="text/javascript">
+//显示灰色 jQuery 遮罩层
+function showBg() {
+    var bh = $("body").height();
+    var bw = $("body").width();
+    $("#dialog").show();
+}
+//关闭灰色 jQuery 遮罩
+function closeBg() {
+    $("#dialog").hide();
+}
+</script>
+<!--[if lte IE 6]>
+<script type="text/javascript">
+// 浮动对话框
+$(document).ready(function() {
+    var domThis = $('#dialog')[0];
+    var wh = $(window).height() / 2;
+    $("body").css({
+        "background-image": "url(about:blank)",
+        "background-attachment": "fixed"
+    });
+    domThis.style.setExpression('top', 'eval((document.documentElement).scrollTop + ' + wh + ') + "px"');
+});
+</script>
+<![endif]-->
+<script type="text/javascript">
+	var ddl_picture;
+	//分词检索字段
+/* 	var textSearchField=["title","creatorSearch","publisher","subject","documentsTitle"];
+	var stringSearchField=["isbnSearch","callNumberSearch","callNumberCopySearch"]; */
+	
+	var textSearchField=["title","creatorSearch","publisher","subject","documentsTitle","creatordef","publisherdef","subjectdef"];
+	var stringSearchField=["isbnSearch","callNumberSearch","callNumberCopySearch"];
+	
+	var allSearchField=["all","abstract"];
+	
+	$(document).ready(function(){
+		
+		//初始化选项卡
+		var corename='';
+		if(!corename.length>0){
+			corename="All";
+		}
+		if (corename!=""&&corename!=undefined){
+			$(".sCurrent").removeClass();
+		    $("#"+corename).attr("class","sCurrent");
+		    $(".search-choose").hide();
+		    $("#choose"+corename).show();
+		}
+		
+		//初始化搜索字段
+		var field="title";
+	    $("#choose"+corename+" input[name=field][value="+field+"]").attr("checked",true);
+	    initSearchModel(field);
+	    //初始化随书光盘复选框
+		var isdisk="";
+		if (isdisk=="yes"){
+			 $("#choose"+corename+" input[name=isdisk]").attr("checked",true);
+		}
+		
+	});
+	//字段切换事件
+	$(document).ready(function() {
+		$("input[name=field]").change(function() {
+			var $selectedvalue = $("input[name=field]:checked").val();
+			initSearchModel($selectedvalue);
+		});
+	});
+	//初始化检索字段类型
+	function initSearchModel(field){
+		var searchModel= $("select[name=searchModel]");
+		
+		searchModel.empty();
+		searchModel.append('<option value="contain" >包含</option>');
+		searchModel.append('<option value="front"  >前方一致</option>');
+		searchModel.append('<option value="seg" selected="selected">   分词检索</option>');
+		searchModel.append('<option value="exact" >绝对一致</option>');
+		
+		 if($.inArray(field, textSearchField)>=0){
+			$("#searchFieldType").val("text");
+		}
+		else if($.inArray(field, stringSearchField)>=0){
+			$("select[name=searchModel] option[value='seg']").remove();
+			$("#searchFieldType").val("string");
+		}
+		else{
+			$("select[name=searchModel] option[value='front']").remove();
+			$("select[name=searchModel] option[value='contain']").remove();
+			$("select[name=searchModel] option[value='exact']").remove();
+		}
+		if(ddl_picture){
+			$(".mod-dropdownlist").remove();
+		} 
+		initDropDownList();
+		
+	}
+	//文献类型切换
+	function change(num) {
+		if(num=="All"){
+			num="";
+		}
+		
+		var field = $('[name="field"]').val();
+		if(num!="digitalBook" && (field=="amazon" || field=="cnki"|| field=="chaox"||field=="wf")){
+			num="";
+		}
+		$('[name="field"]').val("title");
+		$("#corename").val(num);
+		$("#searchForm").submit();
+	}
+
+	function twosearch(formname){
+	//	$("#searchType").val("twoSearch");
+	    $("#Allsearch").val("twoSearch");
+		
+		$("#searchForm").submit();
+	}
+	/*
+	//初始化校区
+	$(document).ready(function() {
+		$.ajax({
+			type: "GET",
+			url: "/opac/getCampusList",
+			dateType:"json",
+			cache: false,
+			async: true,
+			data :"",
+			success: function(msg){
+				if(msg.length>0){
+					var result='result';
+					var corename='';
+                    console.log(corename);
+					if(!corename.length>0){
+						corename="All";
+					}
+					if (corename!=""&&corename!=undefined){
+						var list=eval("("+msg+")");
+						if(list.length>1){
+							var context=$("#searchForm>.search-keyword");
+							if(result=='result'){
+								var context=$("#searchForm>.search-keyword>.search-input");
+							}
+							var div=$("<div class=\"more\"></div>");
+							div.appendTo(context);
+							var aHref=$('<a href=\"javascript:;\" class=\"gjss\"  onclick=\"showBg();\">校区选择</a>');
+							aHref.appendTo(div);
+							var dialog=$("<div id=\"dialog\"></div>");
+							dialog.appendTo(div);
+							var arrowUp=$("<span class=\"arrowUp\"></span>");
+							arrowUp.appendTo(dialog);
+							var selLibrary=$("<div class=\"selLibrary\"></div>");
+							selLibrary.appendTo(dialog);
+							var libraryList=$("<ul class=\"libraryList\"></ul>");
+							libraryList.appendTo(selLibrary);
+							
+							$.each(list,function(index,d){
+								 var li=$("<li><label><input name=\"library\" id=\"library\" type=\"checkbox\" value=\""+d.馆键码+"\"/>"+d.单位名+"</label></li>");
+								 li.appendTo(libraryList);
+							});
+							 var libClose=$("<div class=\"libClose\"></div>");
+							 libClose.appendTo(selLibrary);
+	
+							 var selectAll=$('<a href=\"javascript:;\" onclick=\"selectAllLib();\">全选</a>');
+							 selectAll.appendTo(libClose);
+							 var deleteAll=$('<a href=\"javascript:;\" onclick=\"deleteAllLib();\">清空</a>');
+							 deleteAll.appendTo(libClose);
+							 var close=$('<a href=\"javascript:;\" class=\"closeLayer\" onclick=\"closeBg();\">关闭</a>');
+							 close.appendTo(libClose);
+							 var libraryIds='';
+							if(libraryIds.length>0){
+								var libIds=eval("("+libraryIds+")");
+								$.each(libIds, function(key, val) {
+									$("input[name='library'][value='"+val+"']").attr("checked",true);
+								});
+							}
+							else{
+								selectAllLib();
+							}
+						}
+					}
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+            }          
+		});
+	});*/
+
+
+
+	//初始化馆藏地址
+	$(document).ready(function() {
+		$.ajax({
+			type: "POST",
+			url: "/opac/getCollectionAddressList",
+			dateType:"json",
+			cache: false,
+			async: true,
+			data :"",
+			success: function(msg){
+				if(msg.length>0){
+					var result='result';
+					var corename='';
+					console.log(corename);
+					if(!corename.length>0){
+						corename="All";
+					}
+					if (corename!=""&&corename!=undefined){
+						var list=eval("("+msg+")");
+						if(list.length>1){
+							var context=$("#searchForm>.search-keyword");
+							if(result=='result'){
+								var context=$("#searchForm>.search-keyword>.search-input");
+							}
+							var div=$("<div class=\"more\"></div>");
+							div.appendTo(context);
+
+						//	var aHref=$('<a href=\"javascript:;\" class=\"gjss\"  onclick=\"showBg();\">馆藏地址</a>');
+							//aHref.appendTo(div);
+
+							var dialog=$("<div id=\"dialog\"></div>");
+							dialog.appendTo(div);
+							var arrowUp=$("<span class=\"arrowUp\"></span>");
+							arrowUp.appendTo(dialog);
+							var selLibrary=$("<div class=\"selLibrary\"></div>");
+							selLibrary.appendTo(dialog);
+							var libraryList=$("<ul class=\"libraryList\"></ul>");
+							libraryList.appendTo(selLibrary);
+
+							$.each(list,function(index,d){
+								var li=$("<li><label><input name=\"location\" id=\"location\" type=\"checkbox\" value=\""+d.馆藏地址+"\"/>"+d.部门名称+"</label></li>");
+								li.appendTo(libraryList);
+							});
+							var libClose=$("<div class=\"libClose\"></div>");
+							libClose.appendTo(selLibrary);
+
+							var selectAll=$('<a href=\"javascript:;\" onclick=\"selectAllLib();\">全选</a>');
+							selectAll.appendTo(libClose);
+							var deleteAll=$('<a href=\"javascript:;\" onclick=\"deleteAllLib();\">清空</a>');
+							deleteAll.appendTo(libClose);
+							var close=$('<a href=\"javascript:;\" class=\"closeLayer\" onclick=\"closeBg();\">关闭</a>');
+							close.appendTo(libClose);
+							var libraryIds='';
+							if(libraryIds.length>0){
+								var libIds=eval("("+libraryIds+")");
+								$.each(libIds, function(key, val) {
+									$("input[name='location'][value='"+val+"']").attr("checked",true);
+								});
+							}
+							else{
+								selectAllLib();
+							}
+						}
+					}
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+			}
+		});
+	});
+	function selectAllLib(){
+		 $("input[name='location']").each(function(){
+			   $(this).attr("checked",true);
+		});  
+	}
+	function deleteAllLib(){
+		$("input[name='location']").each(function(){
+			   $(this).attr("checked",false);
+			  });  
+	}
+
+//自动填充
+$(document).ready(function() {
+	$("#q").autocomplete("/opac/search/autoFill?field=title", {
+	    minChars: 1,
+	    autoComplete: 2,
+	    scroll: false,
+	    matchContains: true,
+	    width:498,
+	    autoFill: false,
+	    extraParams: {
+	    },
+	    formatItem: function(data, i, n, v) {
+	       return  v;            
+	    },
+	    formatResult: function(data,v) {
+	        return v;
+	    }
+	}).result(function(event, data, formatted) {
+		$("#libweb_search_form").submit();
+	});
+    $("#more").click(function (){
+       $("#moresearch").toggle();
+        });
+});
+
+</script>
+
+<script type="text/javascript" src="/scripts/dropdownlist.js"></script>
+<script type="text/javascript">
+function initDropDownList(){
+	
+    // 通过原生select控件创建自定义下拉框
+    ddl_picture = DropDownList.create({
+        select:$("select[name=searchModel]"),
+        attrs:{
+            //column :5,
+            //width :200,
+        }
+    });
+	ddl_picture.val('seg');
+} 
+</script>
+<div class="jp-search">
+	<div class="jp-searchTabs">
+		<span id="All" onClick="change('All');">全部</span>
+		<span id="Book" onClick="change('Book');">图书</span><span id="Journal" onClick="change('Journal');">期刊</span><!--  <span id="JDBook" onClick="change('JDBook');">京东电子书</span>  -->
+		<!--<span id="Information" onClick="change('Information');">情报检索</span>  -->
+	</div>
+
+	<div id="searchDiv" class="jp-searchInput">
+		<form id="searchForm" name="searchForm"action="/opac/search" method="post">
+			<input type="hidden" name="tag" value="search" />
+			<input type="hidden" name="subtag" value="searchresult" />
+			<input type="hidden" name="gcbook" value="yes" />
+			<input type="hidden" name="viewtype" value="" />
+			<input type="hidden" id="flword" name="flword" value=" java" />
+			<input type="hidden" name="corename" id="corename" value="" />
+			<input type="hidden" name="searchType" id="Allsearch" value="oneSearch"/>
+			<input type="hidden" name="title" id="title" value=""/>
+			<input type="hidden" name="searchFieldType" id="searchFieldType" value="text"/>
+			<input type="hidden" name="aliasname" id="aliasname" value="全部馆藏" />
+			
+			<div class="search-keyword">
+				<div class="search-input">
+	<input name="q" id="q" type="text" class="search-text" value="java" />
+	                <div class="search-select">
+						<select name="searchModel" id="searchModel"></select>
+					</div>
+					<button id="su" type="submit" class="btn btn-large" />
+						<span class="icon-search">搜  索</span>
+					</button>
+					<a href="#" onclick="twosearch('All')" class="ecjs">在结果中检索</a>
+					</div>
+			</div>
+			<!-- 全部检索字段 -->
+			<div class="search-choose" id="chooseAll" style="display: none;">
+				<!-- 新增部分 begin -->
+<!-- 				<label>
+					<input type="radio" name="field" value="creatordef" />
+					<em>责任者</em>
+				</label>
+				  <label>
+					<input type="radio" name="field" value="publisherdef"  />
+					<em>出版者</em>
+				</label>
+				 <label>
+					<input type="radio" name="field" value="subjectdef"  />
+					<em>主题词</em>
+				</label> -->
+				<!-- 新增部分 end -->
+				
+				<label>
+					<input type="radio" name="field" value="title" checked="checked" />
+					<em>题名</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="abstract"  />
+					<em>摘要</em>
+				</label>
+<!--   				<label>
+					<input type="radio" name="field" value="documentsTitle"  />
+					<em>关键词</em>
+				</label>   -->
+				<label>
+					<input type="radio" name="field" value="creatorSearch" />
+					<em>责任者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="publisher" />
+					<em>出版者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="isbnSearch" />
+					<em>标准编码</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="callNumberSearch" />
+					<em>索书号</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value=subject />
+					<em>主题词</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="all"/>
+					<em>全部字段</em>
+				</label>
+				<label><input type="checkbox" name="isdisk" value="yes" /><em>有随书光盘</em></label>
+               </div>
+			<!-- 图书检索字段 -->
+			<div class="search-choose" id="chooseBook" style="display: none;">
+			
+				<!-- 新增部分 begin -->
+<!-- 				<label>
+					<input type="radio" name="field" value="creatordef" />
+					<em>责任者</em>
+				</label>
+				  
+				  <label>
+					<input type="radio" name="field" value="publisherdef"  />
+					<em>出版者</em>
+				</label>
+				 <label>
+					<input type="radio" name="field" value="subjectdef"  />
+					<em>主题词</em>
+				</label> -->
+				<!-- 新增部分 end -->
+				
+				
+				<label>
+					<input type="radio" name="field" value="title" checked="checked" />
+					<em>题名</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="abstract"  />
+					<em>摘要</em>
+				</label>
+<!--   				<label>
+					<input type="radio" name="field" value="documentsTitle"  />
+					<em>关键词</em>
+				</label>   -->
+				<label>
+					<input type="radio" name="field" value="creatorSearch" />
+					<em>责任者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="publisher" />
+					<em>出版者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="isbnSearch" />
+					<em>标准编码</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="callNumberSearch" />
+					<em>索书号</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="subject" />
+					<em>主题词</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="all" />
+					<em>全部字段</em>
+				</label>
+				<label><input type="checkbox" name="isdisk" value="yes" /><em>有随书光盘</em></label>
+				</div>
+			<!-- 期刊检索字段 -->
+			<div class="search-choose" id="chooseJournal" style="display: none;">
+			
+				<!-- 新增部分 begin -->
+<!-- 				<label>
+					<input type="radio" name="field" value="creatordef" />
+					<em>责任者1</em>
+				</label>
+				  
+				  <label>
+					<input type="radio" name="field" value="publisherdef"  />
+					<em>出版者1</em>
+				</label>
+				 <label>
+					<input type="radio" name="field" value="subjectdef"  />
+					<em>主题词1</em>
+				</label> -->
+				<!-- 新增部分 end -->
+				
+				
+				<label>
+					<input type="radio" name="field" value="title" checked="checked" />
+					<em>题名</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="abstract"  />
+					<em>摘要</em>
+				</label>
+ 				<!-- 	<label>
+					<input type="radio" name="field" value="documentsTitle"  />
+					<em>关键词</em>
+				</label>   -->
+				<label>
+					<input type="radio" name="field" value="creatorSearch" />
+					<em>责任者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="publisher" />
+					<em>出版者</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="isbnSearch" />
+					<em>标准编码</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="callNumberSearch" />
+					<em>索书号</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value=subject />
+					<em>主题词</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="all" />
+					<em>全部字段</em>
+				</label>
+				<label><input type="checkbox" name="isdisk" value="yes" /><em>有随书光盘</em></label>
+			</div>
+			<div class="search-choose" id="chooseNonBook" style="display: none;">
+				<label> 
+					<input type="radio" name="field" value="title" checked="checked" />
+					<em>题名</em>
+				</label>
+				<label>
+					<input type="radio" name="field" value="abstract"  />
+					<em>摘要</em>
+				</label>
+				<label> 
+					<input type="radio" name="field" value="creatorSearch" /> 
+					<em>责任者</em>
+				</label> 
+				<label> 
+					<input type="radio" name="field" value="publisher" /> 
+					<em>出版者</em>
+				</label> 
+				<label> 
+					<input type="radio" name="field" value="isbnSearch" /> 
+					<em>标准编码</em>
+				</label> 
+				<label> 
+					<input type="radio" name="field" value="callNumberSearch" /> 
+					<em>索书号</em>
+				</label> 
+				<label> 
+					<input type="radio" name="field" value=subject /> 
+					<em>主题词</em> 
+				</label>
+				<label> 
+					<input type="radio" name="field" value="all" /> 
+					<em>全部字段</em>
+				</label> 
+				<label>
+					<input type="checkbox" name="isdisk" value="yes" />
+					<em>有随书光盘</em>
+				</label>
+			</div>
+			
+			<!-- 电子图书检索字段 -->
+			</form>
+	</div>
+</div>
+</div>
+	</div>
+	<div class="jp-searchInfo">
+		<div class="container">
+			<div class="choose_item">
+				<ul>
+					</ul>
+			</div>
+			<div class="search_result">
+				<div class="search_info_l">
+					搜索 <strong>java</strong> <font color='red'> </font>的资源 共有<span><font color='red'> 667 </font> </span> 条结果，用时 <font color='red'>0.005</font> 秒</div>
+				<div class="search_info_c">
+					<em class="name">每页显示：</em>
+					<div class="choose">
+						<input onclick="changeCountType()" type="button" value="显示条数"
+							class="searchtype" />
+						<ul id="select_sort_c">
+							<li id="five"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','','','5')">5</a></li>
+							<li id="ten"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','','','10')">10</a></li>
+							<li id="fifth"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','','','15')">15</a></li>
+							<li id="twenty"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','','','20')">20</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="search_info_t">
+					<em class="name">显示方式：</em>
+					<div class="choose">
+						<input onclick="changeViewType()" type="button"
+							value='详细显示'
+							class="searchtype" />
+						<ul id="select_sort_t">
+							<li><a href="javascript:void(0);"
+								onclick="requsetResult('','','view','','','')">详细显示</a></li>
+							<li><a href="javascript:void(0);"
+								onclick="requsetResult('','','table','','','')">列表显示</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="search_info_r">
+					<em class="name">排序方式：</em>
+					<div class="choose">
+						<input onclick="changeSort()" type="button"
+							value='入藏时间'
+							class="searchtype" />
+						<ul id="select_sort">
+							<li><a href="javascript:void(0);"
+								onclick="requsetResult('','','','default','','')">默认排序</a></li>
+							<li id="lititle"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','title','','')">题　名</a></li>
+							<li id="lipublishYear"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','publishYear','','')">出版年份</a></li>
+							<li id="lientryDate"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','latestEntryDate','','')">入藏时间</a></li>
+							 <li id="callNumber"><a href="javascript:void(0);"
+								onclick="requsetResult('','','','callNumber','','')">索书号</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<input type="hidden" id="field" value="title" />
+	
+
+   
+   
+	<div class="jp-main">
+		<div class="container">	
+		
+			<div class="jp-mainContent">
+				<div class="jp-mainLeft">
+					<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>图书馆</h3>
+									<ul>
+
+										<li>图书馆(667)</li>
+													</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>资源类型</h3>
+									<ul>
+
+										<li>图书(667)</li>
+													</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>馆藏地址</h3>
+									<ul>
+
+										<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:基藏书库1','','','','')">基藏书库1<span>(563)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:自然科学书库','','','','')">自然科学书库<span>(497)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:计算机与信息技术学院资料室','','','','')">计算机与信息技术学院资料室<span>(93)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:外文书库','','','','')">外文书库<span>(20)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:地理科学学院资料室','','','','')">地理科学学院资料室<span>(3)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','location:物理电子工程学院资料室','','','','')">物理电子工程学院资料室<span>(3)</span>
+														</a></li>
+													<li id="location_1"><a
+																href="javascript:getMore('location');"
+																class="moreItem">..更多</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:建筑与土木工程学院资料室','','','','')">建筑与土木工程学院资料室<span>(2)</span>
+															</a></li>
+														<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:教育科学学院资料室','','','','')">教育科学学院资料室<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:基藏书库2','','','','')">基藏书库2<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:旅游学院资料室','','','','')">旅游学院资料室<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:生命科学学院资料室','','','','')">生命科学学院资料室<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:社科书库一','','','','')">社科书库一<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:社科书库三','','','','')">社科书库三<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:社科书库二','','','','')">社科书库二<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"
+																id="location"><a href="javascript:void(0);"
+																onclick="requsetResult('','location:谭山书院资料室','','','','')">谭山书院资料室<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="location"><a
+																	href="javascript:getMore('location');"
+																	class="moreItem">..隐藏   </a></li>
+															</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>书目库</h3>
+									<ul>
+
+										<li><a href="javascript:void(0);"
+															onclick="requsetResult('','source:中文图书','','','','')">中文图书<span>(648)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','source:外文图书','','','','')">外文图书<span>(19)</span>
+														</a></li>
+													</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>主题</h3>
+									<ul>
+
+										<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:JAVA语言','','','','')">JAVA语言<span>(579)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:软件','','','','')">软件<span>(61)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:程序设计','','','','')">程序设计<span>(25)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:数据结构','','','','')">数据结构<span>(14)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:','','','','')"><span>(5)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','subjectGroup:JAVA (COMPUTER PROGRAM LANGUAGE)','','','','')">JAVA (COMPUTER PROGRAM LANGUAGE)<span>(5)</span>
+														</a></li>
+													<li id="subjectGroup_1"><a
+																href="javascript:getMore('subjectGroup');"
+																class="moreItem">..更多</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:互联网络','','','','')">互联网络<span>(4)</span>
+															</a></li>
+														<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:电子计算机','','','','')">电子计算机<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:算法分析','','','','')">算法分析<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:计算机应用','','','','')">计算机应用<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:C语言','','','','')">C语言<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:网络服务器','','','','')">网络服务器<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:计算技术','','','','')">计算技术<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:人工神经网络','','','','')">人工神经网络<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:游戏','','','','')">游戏<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:游戏程序','','','','')">游戏程序<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:移动终端','','','','')">移动终端<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:程序语言','','','','')">程序语言<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:自然语言处理','','','','')">自然语言处理<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:软件工具','','','','')">软件工具<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:面向对象语言','','','','')">面向对象语言<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:APPLICATION SOFTWARE','','','','')">APPLICATION SOFTWARE<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:BIG DATA.','','','','')">BIG DATA.<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:DATA MINING.','','','','')">DATA MINING.<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:JAVA语言--程序设计','','','','')">JAVA语言--程序设计<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:JAVA语言-程序设计','','','','')">JAVA语言-程序设计<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:JAVA语言-程序设计-高等学校-教材-英文','','','','')">JAVA语言-程序设计-高等学校-教材-英文<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:JAVA语言—程序设计','','','','')">JAVA语言—程序设计<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:WEB SITE DEVELOPMENT.','','','','')">WEB SITE DEVELOPMENT.<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:人工智能','','','','')">人工智能<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:区块链技术','','','','')">区块链技术<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:可扩充语言','','','','')">可扩充语言<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:可扩充语言,XML','','','','')">可扩充语言,XML<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:可扩展标记语言','','','','')">可扩展标记语言<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:密码算法','','','','')">密码算法<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:情报检索','','','','')">情报检索<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:抽象数据结构','','','','')">抽象数据结构<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:智能技术','','','','')">智能技术<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:物联网','','','','')">物联网<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:电子商务','','','','')">电子商务<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:移动电话机','','','','')">移动电话机<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:移动通信','','','','')">移动通信<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:程序设计--JAVA语言','','','','')">程序设计--JAVA语言<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:算法设计','','','','')">算法设计<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:管理信息系统','','','','')">管理信息系统<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:编译程序','','','','')">编译程序<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:网站','','','','')">网站<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:网络检索','','','','')">网络检索<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:虚拟处理机','','','','')">虚拟处理机<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:计算机算法','','','','')">计算机算法<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:计算机网络','','','','')">计算机网络<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"
+																id="subjectGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','subjectGroup:软件开发','','','','')">软件开发<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="subjectGroup"><a
+																	href="javascript:getMore('subjectGroup');"
+																	class="moreItem">..隐藏   </a></li>
+															</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>出版社</h3>
+									<ul>
+
+										<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:清华大学出版社','','','','')">清华大学出版社<span>(177)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:人民邮电出版社','','','','')">人民邮电出版社<span>(114)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:电子工业出版社','','','','')">电子工业出版社<span>(114)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:机械工业出版社','','','','')">机械工业出版社<span>(109)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:中国铁道出版社','','','','')">中国铁道出版社<span>(24)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publisherGroup:中国水利水电出版社','','','','')">中国水利水电出版社<span>(19)</span>
+														</a></li>
+													<li id="publisherGroup_1"><a
+																href="javascript:getMore('publisherGroup');"
+																class="moreItem">..更多</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:科学出版社','','','','')">科学出版社<span>(10)</span>
+															</a></li>
+														<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:西安电子科技大学出版社','','','','')">西安电子科技大学出版社<span>(9)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:北京理工大学出版社','','','','')">北京理工大学出版社<span>(7)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:中国电力出版社','','','','')">中国电力出版社<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:北京大学出版社','','','','')">北京大学出版社<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:北京邮电大学出版社','','','','')">北京邮电大学出版社<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:高等教育出版社','','','','')">高等教育出版社<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:POSTS&TELECOM PRESS','','','','')">POSTS&TELECOM PRESS<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:中国铁道出版社有限公司','','','','')">中国铁道出版社有限公司<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:天津大学出版社','','','','')">天津大学出版社<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:CHINA MACHINE PRESS','','','','')">CHINA MACHINE PRESS<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:上海交通大学出版社','','','','')">上海交通大学出版社<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:','','','','')"><span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:中国青年出版社','','','','')">中国青年出版社<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:人民邮电出版社,','','','','')">人民邮电出版社,<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:华中科技大学出版社','','','','')">华中科技大学出版社<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:湖南大学出版社','','','','')">湖南大学出版社<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:红旗出版社','','','','')">红旗出版社<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:西南交通大学出版社','','','','')">西南交通大学出版社<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:SCIENCE PRESS','','','','')">SCIENCE PRESS<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:SCIENCEP','','','','')">SCIENCEP<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:SOUTHEAST UNIVERSITY PRE','','','','')">SOUTHEAST UNIVERSITY PRE<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:TSINGHUA UNIVERSITY PRES','','','','')">TSINGHUA UNIVERSITY PRES<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:TSINGHUA UNIVERSITY PUBL','','','','')">TSINGHUA UNIVERSITY PUBL<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:东南大学出版社','','','','')">东南大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:冶金工业出版社','','','','')">冶金工业出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:化学工业出版社','','','','')">化学工业出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:北京工业大学出版社','','','','')">北京工业大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:北京希望电子出版社','','','','')">北京希望电子出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:华南理工大学出版社','','','','')">华南理工大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:南京大学出版社','','','','')">南京大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:南开大学出版社','','','','')">南开大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:吉林大学出版社','','','','')">吉林大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:吉林科学技术出版社','','','','')">吉林科学技术出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:哈尔滨工业大学出版社','','','','')">哈尔滨工业大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:四川大学出版社','','','','')">四川大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:国防工业出版社','','','','')">国防工业出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:国防科技大学出版社','','','','')">国防科技大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:大连理工大学出版社','','','','')">大连理工大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:大连理工大学出版社 东软电子出版社','','','','')">大连理工大学出版社 东软电子出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:广东人民出版社','','','','')">广东人民出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:武汉大学出版社','','','','')">武汉大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:武汉理工大学出版社','','','','')">武汉理工大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:江苏大学出版社','','','','')">江苏大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:浙江大学出版社','','','','')">浙江大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:清华出版社','','','','')">清华出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:清华大学出版社 北京交通大学出版社','','','','')">清华大学出版社 北京交通大学出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:电脑报电子音像出版社','','','','')">电脑报电子音像出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"
+																id="publisherGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publisherGroup:经济管理出版社','','','','')">经济管理出版社<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publisherGroup"><a
+																	href="javascript:getMore('publisherGroup');"
+																	class="moreItem">..隐藏   </a></li>
+															</ul>
+								</div>
+							<div class="jp-itemCategory jp-content margin-bottom">
+									<h3>出版时间</h3>
+									<ul>
+
+										<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2018','','','','')">2018<span>(60)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2019','','','','')">2019<span>(58)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2017','','','','')">2017<span>(22)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2020.01','','','','')">2020.01<span>(20)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2021.1','','','','')">2021.1<span>(16)</span>
+														</a></li>
+													<li><a href="javascript:void(0);"
+															onclick="requsetResult('','publishDateGroup:2021.4','','','','')">2021.4<span>(13)</span>
+														</a></li>
+													<li id="publishDateGroup_1"><a
+																href="javascript:getMore('publishDateGroup');"
+																class="moreItem">..更多</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.09','','','','')">2019.09<span>(12)</span>
+															</a></li>
+														<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2008','','','','')">2008<span>(11)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2010','','','','')">2010<span>(11)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2004','','','','')">2004<span>(10)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2011','','','','')">2011<span>(10)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2016','','','','')">2016<span>(10)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.9','','','','')">2020.9<span>(10)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014','','','','')">2014<span>(9)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.10','','','','')">2019.10<span>(9)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2003','','','','')">2003<span>(8)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015','','','','')">2015<span>(8)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.08','','','','')">2020.08<span>(8)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2021.3','','','','')">2021.3<span>(8)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.07','','','','')">2019.07<span>(7)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.08','','','','')">2019.08<span>(7)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.11','','','','')">2019.11<span>(7)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2009.03','','','','')">2009.03<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.08','','','','')">2015.08<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.04','','','','')">2020.04<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.06','','','','')">2020.06<span>(6)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2002','','','','')">2002<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2013','','','','')">2013<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.03','','','','')">2020.03<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.10','','','','')">2020.10<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.11','','','','')">2020.11<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.12','','','','')">2020.12<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2021.5','','','','')">2021.5<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2024.05','','','','')">2024.05<span>(5)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2010.07','','','','')">2010.07<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2012','','','','')">2012<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2013.07.','','','','')">2013.07.<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2018.01','','','','')">2018.01<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.12','','','','')">2019.12<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.02','','','','')">2020.02<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.07','','','','')">2020.07<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2024.01','','','','')">2024.01<span>(4)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:','','','','')"><span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2000','','','','')">2000<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2007','','','','')">2007<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2009.01','','','','')">2009.01<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2009.04','','','','')">2009.04<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2010.11','','','','')">2010.11<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2013.07','','','','')">2013.07<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.10','','','','')">2014.10<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.12','','','','')">2014.12<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.01','','','','')">2015.01<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.04','','','','')">2015.04<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.05','','','','')">2015.05<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.06','','','','')">2015.06<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.07','','','','')">2015.07<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.09','','','','')">2015.09<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2018.05','','','','')">2018.05<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2018.06','','','','')">2018.06<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2025','','','','')">2025<span>(3)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:1998','','','','')">1998<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2001.08','','','','')">2001.08<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2002.01','','','','')">2002.01<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2004.06','','','','')">2004.06<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2005','','','','')">2005<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2005.03','','','','')">2005.03<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2006','','','','')">2006<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2006.08','','','','')">2006.08<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2008.03','','','','')">2008.03<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2008.05','','','','')">2008.05<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2008.07','','','','')">2008.07<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2008.09','','','','')">2008.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2009.11','','','','')">2009.11<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2010.09','','','','')">2010.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2011.06','','','','')">2011.06<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2011.09','','','','')">2011.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2013.08','','','','')">2013.08<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.01','','','','')">2014.01<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.07','','','','')">2014.07<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.08','','','','')">2014.08<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.09','','','','')">2014.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2014.11','','','','')">2014.11<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.10','','','','')">2015.10<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2015.12','','','','')">2015.12<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2016.01','','','','')">2016.01<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2016.1','','','','')">2016.1<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2016.10','','','','')">2016.10<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2016.8','','','','')">2016.8<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2017.05','','','','')">2017.05<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2017.09','','','','')">2017.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2019.','','','','')">2019.<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.05','','','','')">2020.05<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2020.09','','','','')">2020.09<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2021.2','','','','')">2021.2<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2021.6','','','','')">2021.6<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2023.11','','','','')">2023.11<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2024','','','','')">2024<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2024.04','','','','')">2024.04<span>(2)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:1999','','','','')">1999<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"
+																id="publishDateGroup"><a href="javascript:void(0);"
+																onclick="requsetResult('','publishDateGroup:2000 9','','','','')">2000 9<span>(1)</span>
+															</a></li>
+															<li style="display: none" str="publishDateGroup"><a
+																	href="javascript:getMore('publishDateGroup');"
+																	class="moreItem">..隐藏   </a></li>
+															</ul>
+								</div>
+							</div>
+				<div class="jp-mainCenter">
+					<div class="jp-content">
+						<input type="hidden" name="q" value="java" />
+						<div class="jp-searchList">
+							<ul>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/fddc64e32caee61a194a47f71012fef8
+"
+												target="_blank">零基础案例学JAVA:编程实践365例</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=王翠萍编著&field=creatorSearch">
+													王翠萍编著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/W134</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-302-70021-0</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;清华大学出版社&nbsp;&nbsp;2025.10</p>
+											<div id="ebook1002015">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="1002015/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo1002015">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('1002015','零基础案例学JAVA编程实践365例','图书','王翠萍编著','清华大学出版社','2025.10','TP312.8JA/W134');"
+													class="btn"
+													title="收藏"
+													id="1002015">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks1002015"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="1002015">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang1002015"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea1002015"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/73c898bfcd4a8d86d2fbf97b1b555fe4
+"
+												target="_blank">JAVA WEB项目开发全程实录</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=明日科技编著&field=creatorSearch">
+													明日科技编著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/M807:4</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-302-67568-6</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;清华大学出版社&nbsp;&nbsp;2025.1</p>
+											<div id="ebook1001925">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="1001925/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo1001925">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('1001925','JAVA WEB项目开发全程实录','图书','明日科技编著','清华大学出版社','2025.1','TP312.8JA/M807:4');"
+													class="btn"
+													title="收藏"
+													id="1001925">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks1001925"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="1001925">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang1001925"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea1001925"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/f7eda560fb43be852a296ef2dce3928d
+"
+												target="_blank">JAVA面向对象程序设计</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=主编郭丹, 任艳, 肖金凤&field=creatorSearch">
+													主编郭丹, 任艳, 肖金凤</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/G795</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-5763-5631-1</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;北京理工大学出版社&nbsp;&nbsp;2025</p>
+											<div id="ebook996899">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="996899/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo996899">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('996899','JAVA面向对象程序设计','图书','主编郭丹, 任艳, 肖金凤','北京理工大学出版社','2025','TP312.8JA/G795');"
+													class="btn"
+													title="收藏"
+													id="996899">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks996899"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="996899">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang996899"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea996899"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/67eb5414ca60a8b6e627a51646c854de
+"
+												target="_blank">CIAOCIAO船长征服JAVA:喂养大脑更好的JAVA技能练习.卷Ⅱ</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=(德) 克里斯蒂安·尤伦布姆著&field=creatorSearch">
+													(德) 克里斯蒂安·尤伦布姆著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/Y666-2</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-5763-5425-6</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;北京理工大学出版社&nbsp;&nbsp;2025</p>
+											<div id="ebook996890">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="996890/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo996890">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('996890','CIAOCIAO船长征服JAVA喂养大脑更好的JAVA技能练习卷Ⅱ','图书','(德) 克里斯蒂安·尤伦布姆著','北京理工大学出版社','2025','TP312.8JA/Y666-2');"
+													class="btn"
+													title="收藏"
+													id="996890">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks996890"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="996890">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang996890"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea996890"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/05640afdee59c4fff20d4bfceaa101bf
+"
+												target="_blank">CIAOCIAO船长征服JAVA:喂养大脑更好的JAVA技能练习.卷Ⅰ</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=(德) 克里斯蒂安·尤伦布姆著&field=creatorSearch">
+													(德) 克里斯蒂安·尤伦布姆著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/Y666-1</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-5763-5424-9</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;北京理工大学出版社&nbsp;&nbsp;2025</p>
+											<div id="ebook996889">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="996889/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo996889">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('996889','CIAOCIAO船长征服JAVA喂养大脑更好的JAVA技能练习卷Ⅰ','图书','(德) 克里斯蒂安·尤伦布姆著','北京理工大学出版社','2025','TP312.8JA/Y666-1');"
+													class="btn"
+													title="收藏"
+													id="996889">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks996889"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="996889">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang996889"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea996889"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/a438a4aef1388fb0d0bee859c18843f6
+"
+												target="_blank">JAVA网络爬虫精解与实践</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=张凯编著&field=creatorSearch">
+													张凯编著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/Z133</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-302-67484-9</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;清华大学出版社&nbsp;&nbsp;2024</p>
+											<div id="ebook996683">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="996683/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo996683">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('996683','JAVA网络爬虫精解与实践','图书','张凯编著','清华大学出版社','2024','TP312.8JA/Z133');"
+													class="btn"
+													title="收藏"
+													id="996683">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks996683"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="996683">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang996683"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea996683"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/d1c56327f7947a401b3a70b530e66546
+"
+												target="_blank">编程导航, 全栈项目实战课:从零带做JAVA代码生成器平台</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=程序员鱼皮著&field=creatorSearch">
+													程序员鱼皮著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8JA/C778</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-121-48803-0</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;电子工业出版社&nbsp;&nbsp;2024</p>
+											<div id="ebook993847">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="993847/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo993847">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('993847','编程导航 全栈项目实战课从零带做JAVA代码生成器平台','图书','程序员鱼皮著','电子工业出版社','2024','TP312.8JA/C778');"
+													class="btn"
+													title="收藏"
+													id="993847">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks993847"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="993847">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang993847"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea993847"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/513bf405381e1d1b6f21526e6fdf5888
+"
+												target="_blank">数据结构与问题求解:JAVA语言描述</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=(美) 马克·艾伦·维斯著&field=creatorSearch">
+													(美) 马克·艾伦·维斯著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP311.12/W537</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-111-74687-4</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;机械工业出版社&nbsp;&nbsp;2024.04</p>
+											<p class="subject">
+													<strong>主题词：</strong>
+													数据结构&nbsp;&nbsp;
+														JAVA语言&nbsp;&nbsp;
+														</p>
+											<div id="ebook975069">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="975069/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo975069">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('975069','数据结构与问题求解JAVA语言描述','图书','(美) 马克·艾伦·维斯著','机械工业出版社','2024.04','TP311.12/W537');"
+													class="btn"
+													title="收藏"
+													id="975069">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks975069"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="975069">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang975069"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea975069"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/dcd4e8aac8dd9537f98cd46ce2bd561f
+"
+												target="_blank">JAVA项目实战:深入理解大型互联网企业通用技术,基础篇</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=廖志伟编著&field=creatorSearch">
+													廖志伟编著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8/L474:1</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-302-65851-1</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;清华大学出版社&nbsp;&nbsp;2024.04</p>
+											<div id="ebook977083">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="977083/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo977083">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('977083','JAVA项目实战深入理解大型互联网企业通用技术基础篇','图书','廖志伟编著','清华大学出版社','2024.04','TP312.8/L474:1');"
+													class="btn"
+													title="收藏"
+													id="977083">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks977083"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="977083">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang977083"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea977083"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								<li>
+										<h2>
+											<a
+												href="/opac/book/7077f7d7d3a031a515e78ce5b24eae47
+"
+												target="_blank">JAVA项目开发实战:微视频版</a> <img
+												src="/styles/opac/images/Book.gif"
+												alt="图书"
+												title="图书" />
+											</h2>
+										<div class="jp-booksInfo">
+											<p class="creator">
+												&mdash; <a
+													href="/opac/search?q=陈强编著&field=creatorSearch">
+													陈强编著</a>
+											</p>
+											<p class="call_number">
+													<strong>索书号：</strong>TP312.8/C532</p>
+											<p class="isbn">
+													<strong>标准编码： </strong>978-7-302-65987-7</p>
+											<p class="publisher">
+													<strong>出版信息：</strong>北京&nbsp;&nbsp;清华大学出版社&nbsp;&nbsp;2024.05</p>
+											<div id="ebook977139">
+												<!-- 										</p> -->
+											</div>
+
+											<input type="hidden" name="sourceId"
+												value="977139/图书" />
+											<p class="libraryCount">
+												<span id="gcinfo977139">中文图书
+</span>
+											</p>
+											<p class="collectButton">
+												<button
+													onclick="collect('977139','JAVA项目开发实战微视频版','图书','陈强编著','清华大学出版社','2024.05','TP312.8/C532');"
+													class="btn"
+													title="收藏"
+													id="977139">
+													<span class="icon-star">收藏</span>
+												</button>
+											</p>
+											<div class="collectBooks"
+												id="collectBooks977139"
+												style="display: none; ">
+												<div class="bookAssociation">
+													<strong id="showGcCollect"> <a href="javascript:;"
+														class="holdingInfo collectTip" name="holding"
+														id="977139">馆藏预览</a>
+
+													</strong>
+
+													</div>
+												<div style="display: none"
+													id="Guancang977139"
+													class="library-prompt">
+													数据正在加载中……</div>
+												<div style="display: none"
+													id="seriesArea977139"
+													class="library-prompt">
+													数据正在加载中……</div>
+											</div>
+											</div>
+									</li>
+								</ul>
+						</div>
+						<div class="search_page">
+								<p id="page">
+									
+
+
+
+<font>
+
+
+
+ <b title="当前页">1</b> <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=10" title="第2页">2</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=20" title="第3页">3</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=30" title="第4页">4</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=40" title="第5页">5</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=50" title="第6页">6</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=60" title="第7页">7</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=70" title="第8页">8</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=80" title="第9页">9</a>  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=90" title="第10页">10</a> 
+
+  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=10" title="下一页">下一页</a>
+
+
+  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=100" title="后十页">后十页</a>
+
+
+  <a href="/opac/search?q=java&flword=+java&searchModel=seg&oneSearchWord=&twoSearchWord=&advSearchWold=&combineSearchWold=&exactSearch=no&pager.offset=660" title="尾页">尾页</a>
+
+</font>
+<span> 共有：667条记录</span>
+									</p>
+							</div>
+						</div>
+				</div>
+				<div class="jp-mainRight">
+					<div class="jp-content">
+						<h3>
+							参考翻译</h3>
+						<ul class="jp-aboutResources" id="translation">
+						</ul>
+					</div>
+					<div class="jp-content margin-top">
+						<h3>
+							热门检索词</h3>
+
+
+						<div id="hotsearch"></div>
+<!--暂时注掉  -->
+<!-- 						<div id="wp-cumulus">
+							<div id="checkflashplayer">
+								<p>
+									<a href="http://www.macromedia.com/go/getflashplayer"
+										rel="nofollow">请点击下载Flash Player</a> 9 或更高版本
+								</p>
+							</div>
+
+						</div> -->
+<!--暂时注掉  -->
+
+					</div>
+					<input type="hidden" value="" name="q2" id="q2" /> <input
+						type="hidden" value="" name="coreName" id="coreName" />
+					<input type="hidden" value="" name="viewtype"
+						id="viewtype" />
+					<!-- 相关搜索 start -->
+					<div id="aboutsearch"></div>
+					<!-- 相关搜索 end -->
+					<div class="jp-content margin-top">
+						<h3>
+							相关资源</h3>
+						<ul class="jp-aboutResources" id="aboutResources">
+						</ul>
+					</div>
+					</div>
+			</div>
+		</div>
+	</div>
+	
+
+
+	<!--swiper  -->
+	<div class="container">	
+	<div class="s-main-books jp-content">
+		<h3>CADAL电子资源(需自行注册后登录使用)</h3>
+		  <div class="swiper-container">
+		    <div class="swiper-wrapper">
+		     	 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=44053067" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=44/053/067/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=44053067"  title="Java" target="_blank">Java</a></div>
+							<div class="b-cname">Kenneth A. Lambert; Martin Osborne</div>
+							<div class="b-cname">Brooks/Cole Publishing Company</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/44053067" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=44053067" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06926304" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/926/304/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06926304"  title="java技术丛书:java模式" target="_blank">java技术丛书:java模式</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">电子工业出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06926304" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06926304" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06984489" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/984/489/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06984489"  title="core java/java应用程序设计教程" target="_blank">core java/java应用程序设计教程</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">武汉大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06984489" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06984489" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06949748" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/949/748/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06949748"  title="core java/java应用程序设计教程" target="_blank">core java/java应用程序设计教程</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">武汉大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06949748" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06949748" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=33105398" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=33/105/398/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=33105398"  title="The Java Handbook JAVA使用手册" target="_blank">The Java Handbook JAVA使用手册</a></div>
+							<div class="b-cname">[美]Patrick Naughton</div>
+							<div class="b-cname">电子工业出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/33105398" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=33105398" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06917774" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/917/774/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06917774"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">清华大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06917774" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06917774" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06936839" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/936/839/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06936839"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">清华大学出版社 北京交通大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06936839" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06936839" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06938848" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/938/848/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06938848"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">清华大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06938848" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06938848" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06906512" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/906/512/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06906512"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">大连理工大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06906512" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06906512" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06919660" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/919/660/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06919660"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">清华大学出版社 北京交通大学出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06919660" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06919660" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06902461" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/902/461/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06902461"  title="java程序设计" target="_blank">java程序设计</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">中国铁道出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06902461" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06902461" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06860931" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/860/931/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06860931"  title="Java 揭密" target="_blank">Java 揭密</a></div>
+							<div class="b-cname">(美)Elliontte Rusty Harold（著）；陈移凤</div>
+							<div class="b-cname">世界图书出版社·广州</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06860931" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06860931" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06936323" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/936/323/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06936323"  title="java解惑" target="_blank">java解惑</a></div>
+							<div class="b-cname"></div>
+							<div class="b-cname">人民邮电出版社</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06936323" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06936323" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06861208" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/861/208/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06861208"  title="Java多媒体技术" target="_blank">Java多媒体技术</a></div>
+							<div class="b-cname">彭波（主编）；孙一林</div>
+							<div class="b-cname">清华大学出版社·北京</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06861208" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06861208" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 <div class="swiper-slide">
+					<div class="book-wrap">
+						<div class="book-image" style="height:142px;">
+							<a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06861289" target="_blank"><img src="http://cadal.edu.cn/cx/png/image/cover?p=06/861/289/otiff/00000001.jpg" width="100" height="142"></a>
+						</div>
+						<div class="book-info">
+							<div class="b-name"><a href="http://cadal.edu.cn/cardpage/bookCardPage?ssno=06861289"  title="Java程序设计" target="_blank">Java程序设计</a></div>
+							<div class="b-cname">夏秦(编著)；李平均(编著)；王志文（编著）</div>
+							<div class="b-cname">西安交通大学出版社·西安</div>
+							<!-- <div class="b-cname"><a href="http://www.cadal.zju.edu.cn/book/view/06861289" target="_blank">详情</a>&nbsp;&nbsp;<a href="http://www.cadal.cn/cardpage/bookCardPage?ssno=06861289" target="_blank">阅读</a></div>
+							-->
+						</div>
+					</div>
+					</div>
+				 </div>
+		    <!-- Add Arrows -->
+		    <div class="swiper-button-next"></div>
+		    <div class="swiper-button-prev"></div>
+  	     </div>
+  		</div>
+   </div>
+		<!--swiper  -->
+	<!-- Swiper JS -->
+  <script src="/scripts/Swiper/swiper.min.js"></script>
+
+  <script>
+    var swiper = new Swiper('.swiper-container', {
+      slidesPerView: 8,
+      spaceBetween: 10,
+      slidesPerGroup: 1,
+      loop: true,
+      loopFillGroupWithBlank: true,
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+    });
+  </script>
+  
+   <!-- Swiper JS -->	
+   
+   
+	
+		<!-- 新的热门搜索 -->
+		
+			<script type="text/javascript">
+		//热门检索词
+		$(document).ready(function (){
+			var server="222.21.62.201:8011";
+			$.ajax({
+				type: "GET",
+				url: "/opac/getHotSearchLable",
+				dateType:"json",
+				cache: false,
+				async: true,
+				data : "", 
+				success: function(msg){
+					if(msg.length>0){
+						var word="";
+						var list=eval("("+msg+")");
+						var data = [];
+						 for(var i=0;i<list.length;i++){
+							 	var row = {};
+				                row.name = list[i].NAME;
+				                row.weight =list[i].WEIGHT;
+				                data.push(row);
+						} 
+						Highcharts.chart('hotsearch', {
+							series: [{
+								type: 'wordcloud',
+								data: data
+							}],
+							title: {
+								text: ''
+							}
+						});
+					}
+				}          
+			});
+		});
+	</script>
+	
+	
+	<!-- 链接跳转post 提交 -->
+	<script type="text/javascript">
+		function requsetResult(q,fq,viewType,sortfiled,rfq,range){
+			document.write('<form action="/opac/search" method="post" name="formx1" style="display:none">');
+			document.write('<input type="hidden" name="q4" value="">');
+			document.write('<input type="hidden" name="field" value="title">');
+			document.write('<input type="hidden" name="sort" value="desc">');
+			document.write('<input type="hidden" name="fq" value="&fq=bookStatus:(G OR Journal)&fq=keyCode:(3at1 OR 4at1 OR 2at1 OR 1at1)&fq=locationId:(94 OR 05 OR 33 OR 63 OR 37 OR 38 OR 24 OR 44 OR 04 OR 45 OR 46 OR 12 OR 13 OR 47 OR 16 OR 48 OR 19 OR 21 OR 50 OR 51 OR 52 OR 53 OR 54 OR 55 OR 56 OR 57 OR 58 OR 59 OR 60 OR 61 OR 32 OR 34 OR 41 OR 40 OR 62 OR 86 OR 92 OR 93 OR 49 OR 98 OR 96 OR 91 OR Journal OR purchase)">');
+			document.write('<input type="hidden" name="tablename" value="">');
+			document.write('<input type="hidden" name="corename" value="">');
+			document.write('<input type="hidden" name="aliasname" value="">');
+			document.write('<input type="hidden" name="tag" value="search">');
+			document.write('<input type="hidden" name="subtag" value="searchresult">');
+			document.write('<input type="hidden" name="searchType" value="oneSearch">');
+			document.write('<input type="hidden" name="searchModel" value="seg">');
+			document.write('<input type="hidden" name="oneSearchWord" value="">');
+			document.write('<input type="hidden" name="twoSearchWord" value="">');
+			document.write('<input type="hidden" name="advSearchWold" value="">');
+			document.write('<input type="hidden" name="combineSearchWold" value="">');
+			document.write('<input type="hidden" name="exactSearch" value="no">');
+			document.write('<input type="hidden" name="isdisk" value="">');
+			if(q.length>0){
+				document.write('<input type="hidden" name="q" value=""+q+"">');
+			}
+			else{
+				document.write('<input type="hidden" name="q" value="java">');
+			}
+			
+			if(fq.length>0){
+				document.write('<input type="hidden" name="fq" value="'+fq+'">');
+			}
+			if(rfq.length>0){
+				document.write('<input type="hidden" name="rfq" value="'+rfq+'">');
+			}
+			if(viewType.length>0){
+				document.write('<input type="hidden" name="viewType" value="'+viewType+'">');
+			}
+			if(range.length>0){
+				document.write('<input type="hidden" name="range" value="'+range+'">');
+			}
+			
+			if(sortfiled.length>0){
+				if(sortfiled=='default'){
+					sortfiled='';
+				}
+				document.write('<input type="hidden" name="sortfiled" value="'+sortfiled+'">');
+			}
+			else{
+				document.write('<input type="hidden" name="sortfiled" value="latestEntryDate">');
+			}
+			document.formx1.submit();
+		}
+	</script>
+
+	<script type="text/javascript">
+		//聚合获取更多
+		function getMore(lable){
+			var status=$("#"+lable).css("display");
+			if (status != 'none'){
+				//$("#" + lable).hide();
+				$("li[str='"+lable+"']").hide();
+				$("#" + lable +"_1").show();
+			}else{
+				$("li[str='"+lable+"']").show();
+				//$("#" + lable).show();
+				$("#" + lable +"_1").hide();
+			}
+		}
+
+		//排序方式选择
+		function changeSort(){
+			if($("#select_sort").css("display") == 'block'){
+				$("#select_sort").hide();
+			}else{
+				$("#select_sort").show();
+			}
+		}
+
+		//视图方式选择
+		function changeViewType(){
+			if($("#select_sort_t").css("display") == 'block'){
+				$("#select_sort_t").hide();
+			}else{
+				$("#select_sort_t").show();
+			}
+		}
+		//每页页数选择
+		function changeCountType(){
+			if($("#select_sort_c").css("display") == 'block'){
+				$("#select_sort_c").hide();
+			}else{
+				$("#select_sort_c").show();
+			}
+		}
+	</script>
+	<script type="text/javascript">
+
+		//收藏
+		function collect(doc_id,doc_title,doc_type,author,publisher,publisherdate,call_number) {
+			var islogin="no";
+			if (islogin=="no"){
+				alert("<a href='/opac/login'>请登录后操作!</a>",3,null);
+			}
+			else {
+				$.ajax({
+					type: "POSt",
+					url: "/opac/book/collectBook",
+					dateType:"json",
+					cache: false,
+					data : {
+						docid:doc_id,
+						doc_title:doc_title,
+						doc_type:doc_type,
+						author:author,
+						publisher:publisher,
+						publisherdate:publisherdate,
+						call_number:call_number
+					}, 
+					success: function(result){
+						var list=eval("("+result+")");
+						alert(list.errorMessage,3,null);
+					}          
+				});
+			}
+		}
+	</script>
+	<script type="text/javascript">
+	//馆藏预览 
+		function showGuancang(bookid){
+			if($("#Guancang" + bookid).is(":hidden")){
+				$.ajax({
+					type:"GET",
+					url: "/opac/book/getHoldingsInformation/"+bookid,
+					dateType:"json",
+					cache: false,
+					data : "", 
+					success: function(msg){
+						if(msg.length>0){
+							var belongscampus = '';
+							var rfid_url='';
+							$("#Guancang" + bookid).html("");
+							var list=eval("("+msg+")");
+							var table=$("<table width=\"100%\" style=\"text-align: center;\" border=\"0\" cellspacing=\"0\"  class=\"library-pList\" cellpadding=\"0\" id=\"item"+bookid+"\" >");
+							table.appendTo("#Guancang" + bookid);
+							var th_address='';
+							if(belongscampus=='true'){
+								th_address='<th >所属校区&mdash;馆藏地址</th>';	
+							}
+							else{
+								th_address='<th >馆藏地址</th>';
+							}
+							var th_2='';
+							if(rfid_url.length>0){
+								th_2='<th >馆藏定位</th> ';	
+							}
+							else{
+								th_2='<th >架位</th>';
+							}
+							
+							var thead=$('<thead ><tr><th>索书号</th><th>条形码</th>  '+th_address+th_2+'<th >书刊状态</th></tr></thead>');
+		//公安大学特例  					
+// 		                    var thead=$('<thead ><tr><th>索书号</th><th>条形码</th><th >备注</th><th >书刊状态</th></tr></thead>');
+							
+							thead.appendTo(table);
+							for(var i=0;i<list.length;i++){
+								var tr=$("<tr  align=\"center\"></tr>");
+								tr.appendTo(table);
+								var td1=$("<td  width=\"10%\">"+list[i].索书号+"&nbsp;</td>");
+								var td2=$("<td  width=\"15%\">"+list[i].条形码+"&nbsp;</td>");
+								var td3="";
+								 if(belongscampus=='true'){
+									 td3=$("<td  width=\"25%\">"+list[i].单位名+"&mdash;"+list[i].部门名称+"&nbsp;</td>");
+								 }
+								 else{
+									 td3=$("<td  width=\"25%\">"+list[i].部门名称+"&nbsp;</td>");
+								 }
+								//架位
+								var tdjw="";
+								if(rfid_url.length>0)
+								{
+									tdjw=$('<td><a target="_blank" href="' + rfid_url + list[i].条形码 + '">定位</a></td>');
+								}
+								else{
+									tdjw=$('<td>'+list[i].架位号+'</td>');
+								}
+								//此处应该是给学校定制开发，先注掉
+								/* if(rfid_url.length>0)
+								{
+									tdjw=$("<td  width=\"25%\"><iframe width='100%' height='30%' frameborder='0'  scrolling='no' src='"+rfid_url+list[i].条形码+"'> </iframe></td>");
+								}
+								else{
+									tdjw=$('<td></td>');
+								} */
+		//公安大学特例                       
+// 		                        var td3=$("<td  width=\"25%\">"+list[i].备注+"&nbsp;</td>");
+								var td4;
+								if(list[i].borrowstatus!='不外借'){
+									td4=$("<td  width=\"20%\">"+list[i].bookstatus+"&nbsp;</td>");
+					        	 }
+					        	 else{
+					        		td4=$('<td width="20%">不外借&nbsp;</td>');
+					        	 }
+								td1.appendTo(tr);
+								td2.appendTo(tr);
+								td3.appendTo(tr);
+								tdjw.appendTo(tr);
+								td4.appendTo(tr);
+							}
+							$("#Guancang" + bookid).append("</table>");
+							
+							$("#Guancang" + bookid).addClass("library-prompt");
+							$("#Guancang"+bookid).show();
+						}
+					}
+				});
+			}
+		}
+		function hideGuancang(bookid){
+			$("#Guancang" + bookid).hide();
+		}
+	</script>
+	<script type="text/javascript">
+	//丛编预览
+		function showSeriesArea(bookid){
+			if($("#seriesArea" + bookid).is(":hidden")){
+				$.ajax({
+					type:"GET",
+					url: "/opac/book/getSeriesArea/"+bookid,
+					dateType:"json",
+					cache: false,
+					data : "", 
+					success: function(msg){
+						if(msg.length>0){
+							$("#seriesArea" + bookid).html("");
+							var list=eval("("+msg+")");
+							var table=$("<table width=\"100%\" border=\"0\" cellspacing=\"0\" class=\"library-pList\" cellpadding=\"0\" id=\"item"+bookid+"\" >");
+							table.appendTo("#seriesArea" + bookid);
+							var thead=$("<thead ><tr ><th >题名</th><th >责任者</th><th >出版者</th><th >索书号</th></tr></thead>");
+							thead.appendTo(table);
+							for(var i=0;i<list.length;i++){
+								var tr=$("<tr  align=\"left\"></tr>");
+								tr.appendTo(table);
+								var td1=$("<td  width=\"10%\">"+list[i].题名2+"&nbsp;</td>");
+								var td2=$("<td  width=\"15%\">"+list[i].责任者2+"&nbsp;</td>");
+								var td3=$("<td  width=\"25%\">"+list[i].出版者2+"&nbsp;</td>");
+								var td4=$("<td  width=\"25%\">"+list[i].索书号+"&nbsp;</td>");
+								td1.appendTo(tr);
+								td2.appendTo(tr);
+								td3.appendTo(tr);
+								td4.appendTo(tr);
+							}
+							$("#seriesArea" + bookid).append("</table>");
+							
+							$("#seriesArea" + bookid).addClass("library-prompt");
+							$("#seriesArea" + bookid).show();
+						}
+					}
+				});
+			}
+		}
+		function hideSeriesArea(bookid){
+			$("#seriesArea" + bookid).hide();
+		}
+	</script>
+
+	<script type="text/javascript">
+		$(document).ready(function(){
+			  $(".library-prompt").hide();
+
+			  $(".collectTip").mouseover(
+				function(){
+					var elName=$(this).attr("name");
+					 var bookId=$(this).attr("id");
+					if(elName=='holding'){
+						hideSeriesArea(bookId);
+						showGuancang(bookId);
+					}
+					else{
+						hideGuancang(bookId);
+						showSeriesArea(bookId);
+					}
+			  	}
+			  );
+			  $(".collectBooks").mouseleave(
+					function(){
+						 var bookId=$(this).attr("id");
+						 bookId=bookId.replace("collectBooks", "");
+						 hideSeriesArea(bookId);
+						 hideGuancang(bookId);
+				  	}
+				);
+		});
+	</script>
+	<script  type="text/javascript">
+	function encrypt(content, key){
+	    var sKey = CryptoJS.enc.Utf8.parse(key);
+	    var sContent = CryptoJS.enc.Utf8.parse(content);
+	    var encrypted = CryptoJS.AES.encrypt(sContent, sKey, {mode:CryptoJS.mode.ECB,padding: CryptoJS.pad.Pkcs7});
+	    return encrypted.toString();
+	}
+
+	
+$(document).ready(function (){
+	//异步加载馆藏数和可外借数
+	$(":hidden[name='sourceId']").each(function (index,value){
+		var bookid=value.value.split("/")[0];
+		var bookType=value.value.split("/")[1];
+		//升级到jdk1.8后，bookType中的中文作为参数有问题，先做加密处理，等以后找到原因再说
+		  /* bookType= encrypt(bookType,"goldlib@2306!@#$");   */
+		  
+		$.fn.gcState.init("",bookid,bookType,function(gcState){
+			if(gcState.stateInfo.length>0){
+	    		$("#collectBooks"+bookid).hide();
+				$("#gcinfo"+bookid).append("<br/>"+gcState.stateInfo);
+	    	}
+	    	else{
+	    		$("#collectBooks"+bookid).show();
+				var countMsg='<br/>馆藏：'+gcState.localCount+'<br/>可外借：'+gcState.canBorrowCount;
+				$("#gcinfo"+bookid).append(countMsg);	
+	    	}
+    		
+		});
+    	
+	});
+
+});
+
+</script>
+  	<script type="text/javascript">
+			$(document).ready(function (){
+				//异步加载电子图书链接
+				$(":hidden[name='sourceId']").each(function (index,value){
+					var bookid=value.value.split("/")[0];
+					$.ajax({
+						type: "GET",
+						url: "/opac/book/getEBookUrl/"+bookid,
+						dateType:"json",
+						cache: false,
+						async: true,
+						data : "", 
+						success: function(msg){
+							if(msg.length>0){
+								var html="";
+								var list=eval("("+msg+")");
+								
+									html=html+'<p class="subject"> <strong>电子图书：</strong><a target="_blank" href="'+list+'">'+list+'</a></p>';
+								
+								$("#ebook"+bookid).html(html);
+							}
+						}          
+					});
+				});
+			
+			});
+		</script>  
+		<script type="text/javascript">
+		//异步加载百度相关搜索
+		$(document).ready(function (){
+			var q="java";
+			$.ajax({
+				type: "GET",
+				url: "/opacIntnetResource/getBaiduInfo?wd="+encodeURI(q),
+				dateType:"json",
+				cache: false,
+				async: true,
+				data : "", 
+				success: function(msg){
+					if(msg.length>0){
+						var html="";
+						var list=eval("("+msg+")");
+						for(var i=0;i<list.length;i++){
+							html=html+"<li><a href=\""+list[i].url+"\" target=\"_blank\" title=\""+list[i].title+"\" alt=\""+list[i].title+"\">"+list[i].title+"</a></li>"
+						}
+						$("#aboutResources").append(html);
+					}
+				}          
+			});
+		});
+	</script>
+	<script type="text/javascript">
+		//异步加载参考翻译
+		$(document).ready(function (){
+			var q="java";
+			$.ajax({
+				type: "GET",
+				url: "/opac/search/autoTranslates?q="+encodeURI(q),
+				dateType:"json",
+				cache: false,
+				async: true,
+				data : "", 
+				success: function(msg){
+					if(msg.length>0){
+						var html="";
+						var list=eval("("+msg+")");
+						var ctx="";
+						for(var i=0;i<list.length;i++){
+							html=html+"<li><a href=\"/opac/search?q="+list[i]+"&field=title&exactSearch=no&isdisk=&corename=&aliasname=\" title=\""+list[i]+"\" alt=\""+list[i]+"\">"+list[i]+"</a></li>"
+						}
+						$("#translation").append(html);
+					}
+				}          
+			});
+		});
+	</script>
+	<script type="text/javascript">
+		//关键词标红
+		$(document).ready(function (){
+			var flword=" java";
+			flword=encodeURI(flword);
+			$.ajax({
+				type: "GET",
+				url: "/opac/search/ansjAnalysis?sw="+flword,
+				dateType:"json",
+				cache: false,
+				async: true,
+				data : "", 
+				success: function(msg){
+					if(msg.length>0){
+						var list=eval("("+msg+")");
+						$('.jp-searchList').highlight(list);
+						$('.jp-booksInfo').highlight(list);
+					}
+				}          
+			});
+		});
+	</script>
+
+	<script type="text/javascript">
+		//热门检索词
+		$(document).ready(function (){
+			var server="222.21.62.201:8011";
+			$.ajax({
+				type: "GET",
+				url: "/opac/getHotSearchLable",
+				dateType:"json",
+				cache: false,
+				async: true,
+				data : "", 
+				success: function(msg){
+					if(msg.length>0){
+						var word="";
+						var list=eval("("+msg+")");
+						for(var i=0;i<list.length;i++){
+							var name=encodeURI(list[i].NAME);
+							word=word+"<a href='http://"+server+"/opac/makeInternet?param="+name+"' style='font-size:"+list[i].WEIGHT+"pt;'>"+list[i].NAME+"</a>";
+						}
+						word=encodeURIComponent(word);
+						var widget = new SWFObject("/scripts/3dLable/tagcloud.swf", "tagcloudflash", "230", "226", "9", "0x000000");
+						widget.addParam("wmode", "transparent");
+						widget.addParam("allowScriptAccess", "always");
+						widget.addVariable("tcolor", "0x00ff00");
+						widget.addVariable("hicolor", "0x000000");
+						widget.addVariable("tspeed", "70");
+						widget.addVariable("distr", "true");
+						widget.addVariable("mode", "tags");
+						widget.addVariable("tagcloud","<tags>"+word+"</tags>");
+						widget.write("checkflashplayer");
+					}
+				}          
+			});
+		});
+	</script>
+	<script type="text/javascript"> 
+				  var _paq = _paq || [];
+				  (function() {
+				    var u="/opac/saveSearchLog?";
+				    _paq.push(['method=search']);
+				    _paq.push(['q=java']);
+				    _paq.push(['type=']);
+				    _paq.push(['field=title']);
+				   _paq.push(['countfield=']);
+				    _paq.push(['countValue=']);
+				    _paq.push(['search=']);
+				    _paq.push(['q4=']);
+				    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript';
+				    g.defer=true; g.async=true; g.src=u+_paq.join("&"); s.parentNode.insertBefore(g,s);
+				  })();
+			</script>   
+   
+	<div class="jp-footer">
+	<div class="container">
+		<div class="jp-copyright">
+			<!-- <a href="" target="_blank" class="c28728b">馆长信箱</a><a>|</a><a
+            href="" target="_blank" class="c28728b">联系我们</a><a>|</a><a href="" target="_blank" class="c28728b">旧版图书馆</a>
+        <br>-->
+			图书馆&nbsp;&nbsp;OPAC v2.2.9.2.314<br />
+			<!--Copyright © 2014 北京金盘鹏图软件技术有限公司 版权所有<br/>-->
+			<!--根据是否显示访问量参数isvisitnumshow，决定是否显示访问量  -->
+			</div>
+	</div>
+</div>
+<!--
+<script type="text/javascript">
+	$(document).ready(function(){
+		var url = 'http://chaxun.1616.net/s.php?type=ip&output=json&callback=?&_='
+				+ Math.random();
+		$.ajax({
+			url : url,
+			type : "GET",
+			async : true,
+			dataType : "jsonp",
+			jsonp : "jsonpcallback",
+			success : function(data) {
+				$('#ipstr').html(data.Ip);
+			},
+			error : function() {
+
+			}
+		});
+	});
+</script>
+-->
+<script type="text/javascript">
+	jQuery(function($) {
+		$.ajax({
+			type : "POST",
+			url : "/opac/opacVisitLog/getVisitCount",
+			dateType : "text",
+			async : true,
+			cache : false,
+			data : {},
+			success : function(result) {
+				if (result.length > 0) {
+					$("#visitnum").html(result);
+				} else {
+					$("#visitnum").html("0");
+				}
+			}
+		});
+
+	});
+</script>
+</div>
+</body>
+</html>

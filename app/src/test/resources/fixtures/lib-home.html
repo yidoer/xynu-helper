@@ -1,0 +1,922 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>信阳师范大学谭山校区图书馆</title><META Name="keywords" Content="信阳师范大学谭山校区图书馆" />
+
+<link href="style/sty.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="js/jquery-bd.min.js"></script>
+<script type="text/javascript" src="js/responsiveslides.min.js"></script>
+<script type="text/javascript" src="js/searchBoxD.js"></script>
+
+
+<script type="text/javascript">
+jQuery.browser={};(function(){jQuery.browser.msie=false; jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
+</script>
+<script type="text/javascript">
+function scrollDoor(){
+}
+scrollDoor.prototype = {
+ sd : function(menus,divs,openClass,closeClass){
+  var _this = this;
+  if(menus.length != divs.length)
+  {
+   alert("菜单层数量和内容层数量不一样!");
+   return false;
+  }    
+  for(var i = 0 ; i < menus.length ; i++)
+  { 
+   _this.$(menus[i]).value = i;    
+   _this.$(menus[i]).onmouseover = function(){
+     
+    for(var j = 0 ; j < menus.length ; j++)
+    {      
+     _this.$(menus[j]).className = closeClass;
+     _this.$(divs[j]).style.display = "none";
+    }
+    _this.$(menus[this.value]).className = openClass; 
+    _this.$(divs[this.value]).style.display = "block";    
+   }
+  }
+  },
+ $ : function(oid){
+  if(typeof(oid) == "string")
+  return document.getElementById(oid);
+  return oid;
+ }
+}
+window.onload = function(){
+ var SDmodel = new scrollDoor();
+  SDmodel.sd(["m0s1","m0s2","m0s3","m0s4","m0s5"],["c0s1","c0s2","c0s3","c0s4","c0s5"],"sd0s1","sd0s2");
+ SDmodel.sd(["m0b1","m0b2","m0b3"],["c0b1","c0b2","c0b3"],"sd0b1","sd0b2","sd0b3");
+   SDmodel.sd(["m01","m02"],["c01","c02"],"sd01","sd02");
+   SDmodel.sd(["m0a1","m0a2","m0a3"],["c0a1","c0a2","c0a3"],"sd0a1","sd0a2");
+}
+</script>
+<script type="text/javascript" src="https://robot.chaoxing.com/sdk/CxRobotSdkJs.js"></script>
+<script type="text/javascript">
+    CxRobotSdkJs.init("http://robot.chaoxing.com/embedChat?unitId=23591&robotId=5505c486dad84fb1a41e3cd63eecee97&groupId=0&openType=openUrl&openPage=coze", "bb26d41bd22c608920d3b7a2f1c11237");
+</script>
+
+<script type="text/javascript" src="js/jquery.SuperSlide.2.1.3.js"></script>
+
+<style>
+.xstj {
+    position: relative;}
+.xstj .bd {
+    padding: 0 20px;}
+.xstj a.next {
+    position: absolute;
+    top: calc(50% - 20px);
+    height: 50px;
+    width: 10px;
+    right: 5px;
+    background: url(images/arr-r.png) center rgba(8, 73, 146, 0.05) no-repeat;
+    background-size: 100%;}
+.xstj a.prev {
+    position: absolute;
+    top: calc(50% - 20px);
+    height: 50px;
+    width: 10px;
+    left: 5px;
+    background: url(images/arr-l.png) center rgba(8, 73, 146, 0.05) no-repeat;
+    background-size: 100%;}
+</style>
+
+<!--Announced by Visual SiteBuilder 9-->
+<link rel="stylesheet" type="text/css" href="_sitegray/_sitegray_d.css" />
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232307e7a47545254574a03090007 -->
+<link rel="stylesheet" type="text/css" href="index.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1001,'/index.jsp',-1,1555086018)</script>
+</head>
+
+<body>
+<div class="kmw1200">
+<div class="klvo">
+<div class="klvolf">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="index.htm" title="图书馆"><img src="images/newlogo.png" width="380" height="60" border="0" alt="图书馆" title="图书馆"></a></div>
+<div class="kl700"><ul>
+
+<li class="kl700a">
+  <a href="index.htm" title="首页">首页</a>
+</li>
+
+<li>
+  <a href="bggk/bgjj.htm" title="本馆概况">本馆概况</a>
+</li>
+
+<li>
+  <a href="dzfw/rgxz.htm" title="读者服务">读者服务</a>
+</li>
+
+<li>
+  <a href="szzy/zwzy.htm" title="数字资源">数字资源</a>
+</li>
+
+<li>
+  <a href="dhxljt/jtjj.htm" title="贤林讲坛">贤林讲坛</a>
+</li>
+
+<li>
+  <a href="djzl1/djdt.htm" title="党建专栏">党建专栏</a>
+</li>
+
+<li>
+  <a href="http://222.21.62.201:8011/opac/login?referer=/opac/mylibrary&tag=index" target="_blank" title="我的图书馆">我的图书馆</a>
+</li>
+
+</ul></div>
+</div>
+</div>
+<div class="soubj">
+
+<div class="scrolldoorFrame ssw">
+    <ul class="scrollUl4">
+  <div style="text-align: center;">
+  <div style="display: inline-block;">
+   <li class="sd0s1" id="m0s1"><a>馆藏书目</a></li>
+        <li class="sd0s2" id="m0s2"><a>知网检索</a></li>
+        <li class="sd0s2" id="m0s3"><a>读秀</a></li>
+        <li class="sd0s2" id="m0s4"><a>SPIS外文</a></li>
+        <li class="sd0s2" id="m0s5"><a>站内检索</a></li>
+  </div>
+</div>
+    </ul>
+    <div class="bor02 cont">
+        <div id="c0s1">
+            <div class="souw gzml">
+
+  <form id="formGcAll" name="formGcAll" action="http://222.21.62.201:8011/opac/search" method="post" target="_blank">
+  <input type="hidden" name="tag" value="search" />
+  <input type="hidden" name="subtag" value="simsearch" />
+
+<div style=" text-align: left; width: 100% margin: 0 auto;">
+  <div style="display: inline-block;  width: 100%; margin-left: 10px;">
+    <select name="corename" style="height:30px; width: 20%">
+      <option value="">全部馆藏</option>
+      <option value="Book">馆藏图书</option>
+      <option value="Journal">馆藏期刊</option>
+      <option value="NonBook">非书资料</option>
+    </select>
+    <input type="hidden" name="gcbook" value="yes" />
+    <input name="q" id="q" type="text" class="search-text" value="" style="height:24px; width: 40%" />
+    <select name="searchModel" id="1742377290317Select95128" data-cols="8" style="height:30px; width: 20%">
+      <option value="front" selected="selected">前方一致</option>
+      <option value="exact">绝对一致</option>
+      <option value="contain">包含</option>
+      <option value="seg">分词检索</option>
+    </select>
+    <input type="submit" value="查询" style="height:30px; width: 10%;" />
+  </div>
+</div>
+
+<div style="margin-left: 40px;">
+  <div style="display: inline-block;">
+  <label>
+        <input type="radio" name="field" value="documentsTitle" checked="checked" />
+        <em>文献名</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="title" />
+        <em>题名</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="creatorSearch" />
+        <em>作者</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="publisher" />
+        <em>出版社</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="isbnSearch" />
+        <em>ISBN</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="callNumberSearch" />
+        <em>索书号</em>
+  </label>
+  <label>
+        <input type="radio" name="field" value="all" />
+        <em>全部字段</em>
+  </label>
+  </div>
+</div>
+ 
+  
+</form>
+
+
+            </div>
+        </div>
+        <div class="hidden" id="c0s2">
+        <div class="souw" style="height:50px; margin-left: 70px;">
+            <div class="header_wrap">
+            <script>
+var options2 ={
+         container: '.header_wrap',
+          position: 'absolute',
+          top: 0,
+          left: 50,
+          width: 500,
+          height: 40,
+          subject: '',
+          front: true,
+        }
+window.searchBoxD(options2)
+</script>
+            </div>
+            </div>
+            
+        </div>
+        <div class="hidden" id="c0s3">
+        <div class="souw dx">
+
+
+            <div style="text-align: center;">
+  <iframe allowtransparency="true" id="duxiuframe13" border="0" vspace="0" hspace="0" marginwidth="0" marginheight="0" framespacing="0" frameborder="0" scrolling="no" width="500" height="50" src="https://www.duxiu.com/pop/isearch.jsp?style=13&sw=%CA%E4%C8%EB%BC%EC%CB%F7%B4%CA" style="display: inline-block; margin-left: 100px;"></iframe>
+</div>
+
+            </div>
+            
+        </div>
+  <div class="hidden" id="c0s4">
+            <div class="souw" style="height:50px; margin-left: 60px;">
+                <form method="get" action="http://spis.hnlat.com/scholar/list" accept-charset="UTF-8" target="_blank">
+                    <input type="text" value="" name="val" id="keyword_text" placeholder="请输入关键词/DOI" class="spisbk">
+                    <input type="submit" id="quick_search_btn" value="提交" class="spisan">
+                </form>
+            </div>
+        </div>
+        <div class="hidden" id="c0s5">
+            <div class="souw" style="height:50px; margin-left: 70px;">
+              <script type="text/javascript">
+    function _nl_ys_check(){
+        
+        var keyword = document.getElementById('showkeycode202260').value;
+        if(keyword==null||keyword==""){
+            alert("请输入你要检索的内容！");
+            return false;
+        }
+        if(window.toFF==1)
+        {
+            document.getElementById("lucenenewssearchkey202260").value = Simplized(keyword );
+        }else
+        {
+            document.getElementById("lucenenewssearchkey202260").value = keyword;            
+        }
+        var  base64 = new Base64();
+        document.getElementById("lucenenewssearchkey202260").value = base64.encode(document.getElementById("lucenenewssearchkey202260").value);
+        new VsbFormFunc().disableAutoEnable(document.getElementById("showkeycode202260"));
+        return true;
+    } 
+</script>
+<form action="ssjgcontent.jsp?wbtreeid=1001" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check()" target="_blank" style="display: inline">
+ <input type="hidden" id="lucenenewssearchkey202260" name="lucenenewssearchkey" value=""><input type="hidden" id="_lucenesearchtype202260" name="_lucenesearchtype" value="1"><input type="hidden" id="searchScope202260" name="searchScope" value="0">
+<div class="souinw"><input name="showkeycode" id="showkeycode202260"></div>
+ <div class="soubw"><input type="image" src="images/gh.png" align="absmiddle" style="cursor: hand">
+ </div>
+</form><script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/formfunc.js"></script>
+
+            </div>
+        </div>
+</div>
+
+</div>
+</div>
+<div class="wban">
+
+<div class="mianc">
+    <div class="ck-slide">    <script language="javascript" src="/system/resource/js/dynclicks.js"></script><ul class="ck-slide-wrapper">
+            
+<li>
+           <h1><span></span></h1> <a href="" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57424)"><img src="images/2024226.jpg" alt=""></a>
+            
+            </li>        
+</ul>
+        <a href="javascript:;" class="ctrl-slide ck-prev">上一张</a> <a href="javascript:;" class="ctrl-slide ck-next">下一张</a>
+        <div class="ck-slidebox">
+            <div class="slideWrap">
+                <ul class="dot-wrap">
+                    <li class="current"><em></em></li>
+                </ul>
+            </div>
+        </div></div>
+    <!-- js -->
+    <!--<script src="js/slide.min.js"></script>-->
+    <script src="js/slide.js"></script>
+    <script>
+        $('.ck-slide').ckSlide({
+            autoPlay: true,//默认为不自动播放，需要时请以此设置
+            dir: 'x',//默认效果淡隐淡出，x为水平移动，y 为垂直滚动
+            interval:3000//默认间隔2000毫秒
+            
+        });
+    </script>
+    <!-- Demo end -->        
+</div>
+</div>
+    
+<div class="klijrr">    <a class="bgs" href="http://222.21.62.201:8011/opac/search/simsearch" title="书目检索" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57476)" target="_blank">
+<div class="btimg"><img src="images/fwlj5.png"></div>
+<span>书目检索</span></a>
+<a class="bgs" href="http://222.21.62.201:8011/opac/newBook" title="新书通报" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57472)" target="_blank">
+<div class="btimg"><img src="images/fwlj1.png"></div>
+<span>新书通报</span></a>
+<a class="bgs" href="http://222.21.62.201:8011/opac/recn" title="图书荐购" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57473)" target="_blank">
+<div class="btimg"><img src="images/fwlj2.png"></div>
+<span>图书荐购</span></a>
+<a class="bgs" href="xwgg1/tsjz.htm" title="图书捐赠" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57479)" target="_blank">
+<div class="btimg"><img src="images/fwlj8.png"></div>
+<span>图书捐赠</span></a>
+<a class="bgs" href="dzfw/xwfw.htm" title="校外访问" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57475)" target="_blank">
+<div class="btimg"><img src="images/fwlj4.png"></div>
+<span>校外访问</span></a>
+<a class="bgs" href="https://m.weibo.cn/u/1573440321" title="阅读推广" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57474)" target="_blank">
+<div class="btimg"><img src="images/fwlj3.png"></div>
+<span>阅读推广</span></a>
+<a class="bgs" href="info/1003/2411.htm" title="科技查新" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57480)" target="_blank">
+<div class="btimg"><img src="images/fwlj9.png"></div>
+<span>科技查新</span></a>
+<a class="bgs" href="bggk/bgbj.htm" title="本馆布局" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57478)" target="_blank">
+<div class="btimg"><img src="images/fwlj7.png"></div>
+<span>本馆布局</span></a>
+<a class="bgs" href="http://222.21.62.151" title="特色展厅" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57477)" target="_blank">
+<div class="btimg"><img src="images/fwlj6.png"></div>
+<span>特色展厅</span></a>
+<a class="bgs" href="dzfw/dzzx/cjwt1.htm" title="常见问题" onclick="_addDynClicks(&#34;wbimage&#34;, 1555086018, 57481)" target="_blank">
+<div class="btimg"><img src="images/fwlj10.png"></div>
+<span>常见问题</span></a>
+
+<div style="clear:both;"></div>
+</div>
+<div class="tzgg">
+<div class="tzgglf">
+<div class="xwdt-pic">
+                    <div class="yx-rotaion">
+                      
+<script language="javascript" src="/system/resource/js/ajax.js"></script><ul class="rotaion_list">
+<li>
+  <a href="info/1003/7884.htm" target="_blank">
+    <img src="/__local/D/74/9B/E479DFE2D00FCE3ED9E4EC41DE7_01CC9BF9_36EC1.jpg" alt="诗韵润童心 经典启童年 ——图书馆携手附属幼儿..." width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+<li>
+  <a href="info/1003/7883.htm" target="_blank">
+    <img src="/__local/9/FB/4B/8BB9F170F65EFCEA407266F5282_4194716F_C529A.png" alt="图书馆召开2027年度国家社科基金项目立项选题分..." width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+<li>
+  <a href="info/1003/7867.htm" target="_blank">
+    <img src="/__local/E/11/84/8C74E02C8A960095BA090A5963C_34A78ACE_12092.jpg" alt="图书馆召开大别山红色文化资源挖掘与弘扬研讨会" width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+<li>
+  <a href="info/1003/7835.htm" target="_blank">
+    <img src="/__local/6/5D/0F/4DF653A446FD63DEF5D61949721_EE12F68C_1FBF6.png" alt="图书馆、审计处联合开展“缅怀先烈铭初心 联学共..." width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+<li>
+  <a href="info/1003/7824.htm" target="_blank">
+    <img src="/__local/D/5F/CB/12056A89C0DA1361475684A3765_2429C91D_305C7.jpg" alt="南阳师范学院图书馆一行来我馆考察交流" width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+<li>
+  <a href="info/1003/7812.htm" target="_blank">
+    <img src="/__local/4/EB/8A/01A31330CAD1F50F471A3012270_BCED5FB8_16EEF.jpg" alt="图书馆联合研究生院开展2026级研究生新生入馆教..." width="560" height="356" style="object-fit: cover; object-position: center;">
+  </a>
+</li>
+</ul><script>_showDynClickBatch(['dynclicks_u5_7884','dynclicks_u5_7883','dynclicks_u5_7867','dynclicks_u5_7835','dynclicks_u5_7824','dynclicks_u5_7812'],[7884,7883,7867,7835,7824,7812],"wbnews", 1555086018)</script>
+
+                    </div>
+                    <script type="text/javascript" src="js/jquery.yx_rotaion.js"></script>
+                    <script type="text/javascript">
+                    $(document).ready(function(){
+                        $(".yx-rotaion").yx_rotaion({auto:true});
+                    });
+                    </script>
+                </div>
+
+
+</div>
+<div class="tzggrr">
+<div class="scrolldoorFrame">
+    <ul class="scrollUl3">
+        <li class="sd0b1" id="m0b1"><a href="xwgg1/xwgg.htm">新闻公告</a></li>
+        <li class="sd0b3" id="m0b3"><a href="xwgg1/zydt.htm">资源动态</a></li>
+        <li class="sd0b2" id="m0b2"><a href="xwgg1/ztyj.htm">专题研究</a></li>       
+       
+    </ul>
+    <div class="bor02 cont">
+        <div id="c0b1">
+            <a href="xwgg1/xwgg.htm" class="more1">查看更多>></a>
+        <div class="talislk">
+<ul>
+
+<li>
+<a href="info/1003/7921.htm" target="_blank" title="信阳市图书馆一行来我馆业务交流">信阳市图书馆一行来我馆业务交流</a>
+2026-11-18</li>
+
+<li>
+<a href="info/1003/7884.htm" target="_blank" title="诗韵润童心 经典启童年 ——图书馆携手附属幼儿园开展中华优秀传统文化启蒙活动">诗韵润童心 经典启童年 ——图书馆携手附属幼儿园开展中华优...</a>
+2026-11-11</li>
+
+<li>
+<a href="info/1003/7883.htm" target="_blank" title="图书馆召开2027年度国家社科基金项目立项选题分析会">图书馆召开2027年度国家社科基金项目立项选题分析会</a>
+2026-11-06</li>
+
+<li>
+<a href="info/1003/7867.htm" target="_blank" title="图书馆召开大别山红色文化资源挖掘与弘扬研讨会">图书馆召开大别山红色文化资源挖掘与弘扬研讨会</a>
+2026-10-28</li>
+
+<li>
+<a href="info/1003/7835.htm" target="_blank" title="图书馆、审计处联合开展“缅怀先烈铭初心 联学共建担使命”主题党日活动">图书馆、审计处联合开展“缅怀先烈铭初心 联学共建担使命”主...</a>
+2026-10-27</li>
+
+<li>
+<a href="info/1003/7831.htm" target="_blank" title="图书馆新媒体工作室2026级新成员见面会顺利召开">图书馆新媒体工作室2026级新成员见面会顺利召开</a>
+2026-10-21</li>
+
+<li>
+<a href="info/1003/7824.htm" target="_blank" title="南阳师范学院图书馆一行来我馆考察交流">南阳师范学院图书馆一行来我馆考察交流</a>
+2026-10-20</li>
+
+<li>
+<a href="info/1003/7822.htm" target="_blank" title="图书馆走进智慧谷森林幼儿园开展重阳节主题活动">图书馆走进智慧谷森林幼儿园开展重阳节主题活动</a>
+2026-10-20</li>
+
+</ul>
+</div><script>_showDynClickBatch(['dynclicks_u6_7921','dynclicks_u6_7884','dynclicks_u6_7883','dynclicks_u6_7867','dynclicks_u6_7835','dynclicks_u6_7831','dynclicks_u6_7824','dynclicks_u6_7822'],[7921,7884,7883,7867,7835,7831,7824,7822],"wbnews", 1555086018)</script>
+</div>
+        
+          <div class="hidden" id="c0b2">
+        <a href="xwgg1/ztyj.htm" class="more1">查看更多>></a>
+         <div class="talislk">
+<ul>
+
+<li>
+<a href="https://elib.cnki.net/wh0171/topic/8aa3207c83a04704829837c832be1d1f/all/" target="_blank" title="当代马克思主义文献">当代马克思主义文献</a>
+2026-04-02</li>
+
+<li>
+<a href="https://elib.cnki.net/wh0171/topic/55c00daba2d54be4a6ceb5bee353528f/all/" target="_blank" title="党建文献">党建文献</a>
+2026-04-02</li>
+
+<li>
+<a href="https://elib.cnki.net/wh0171/topic/5d503f88e1f84367b7c4a6dda1992cbb/all/" target="_blank" title="“茶”文献馆">“茶”文献馆</a>
+2026-04-02</li>
+
+<li>
+<a href="https://elib.cnki.net/wh0171/topic/4e55083b126842bba537655bf3a78117/all/" target="_blank" title="教师教育文献">教师教育文献</a>
+2026-04-02</li>
+
+<li>
+<a href="https://elib.cnki.net/wh0171/topic/3c734e34bd0c43d3851e8e85d6d197ee/all/" target="_blank" title="大别山文献专题">大别山文献专题</a>
+2026-04-02</li>
+
+</ul>
+</div><script>_showDynClickBatch(['dynclicks_u7_7353','dynclicks_u7_7352','dynclicks_u7_7350','dynclicks_u7_7349','dynclicks_u7_7351'],[7353,7352,7350,7349,7351],"wbnews", 1555086018)</script>
+
+        </div>
+        
+        <div class="hidden" id="c0b3">
+        <a href="xwgg1/zydt.htm" class="more1">查看更多>></a>
+           <div class="talislk">
+<ul>
+
+<li>
+<a href="info/1005/7880.htm" target="_blank" title="《启研外文文献服务平台》试用通知">《启研外文文献服务平台》试用通知</a>
+2026-11-03</li>
+
+<li>
+<a href="info/1005/7876.htm" target="_blank" title="《“经管大讲堂”新时代经济管理视频课程数据库》试用通知">《“经管大讲堂”新时代经济管理视频课程数据库》试用通知</a>
+2026-10-29</li>
+
+<li>
+<a href="info/1005/7875.htm" target="_blank" title="《上岸考研网》试用通知">《上岸考研网》试用通知</a>
+2026-10-29</li>
+
+<li>
+<a href="info/1005/7834.htm" target="_blank" title="《泛研全球科研项目数据库》试用通知">《泛研全球科研项目数据库》试用通知</a>
+2026-10-23</li>
+
+<li>
+<a href="info/1005/7747.htm" target="_blank" title="《华艺电子书数据库》试用通知">《华艺电子书数据库》试用通知</a>
+2026-09-30</li>
+
+<li>
+<a href="info/1005/7746.htm" target="_blank" title="《华艺学术文献数据库》试用通知">《华艺学术文献数据库》试用通知</a>
+2026-09-30</li>
+
+<li>
+<a href="info/1005/7745.htm" target="_blank" title="《是科外文电子书数据库》试用通知">《是科外文电子书数据库》试用通知</a>
+2026-09-30</li>
+
+<li>
+<a href="info/1005/7744.htm" target="_blank" title="《爱思唯尔ScienceDirect数据库》开通通知">《爱思唯尔ScienceDirect数据库》开通通知</a>
+2026-09-29</li>
+
+</ul>
+</div><script>_showDynClickBatch(['dynclicks_u8_7880','dynclicks_u8_7876','dynclicks_u8_7875','dynclicks_u8_7834','dynclicks_u8_7747','dynclicks_u8_7746','dynclicks_u8_7745','dynclicks_u8_7744'],[7880,7876,7875,7834,7747,7746,7745,7744],"wbnews", 1555086018)</script>
+
+        </div>
+    </div>
+</div>
+
+
+
+</div>
+</div>
+<div class="dajg324" style="display:none">
+<div class="scrolldoorFrame">
+<div class="kkcw">
+   <ul class="scrollUl">
+    <li class="sd01" id="m01"><a href="<span style='color:red;font-size:9pt'>转换链接错误</span>">党建（省、国家）</a></li>
+    <li class="sd02" id="m02"><a href="<span style='color:red;font-size:9pt'>转换链接错误</span>">理论政策</a></li>
+   </ul>
+   </div>
+   <div class="bor02 cont">
+    <div id="c01">
+<div class="bah300">   
+<div class="taggk"><ul>
+
+</ul>
+
+<div style="clear:both;"></div>
+<div class="qhmore"><a href="<span style='color:red;font-size:9pt'>转换链接错误</span>">更多&gt;&gt;</a></div>
+</div>
+</div>
+</div>
+    <div class="hidden" id="c02">
+<div class="bah300">   
+<div class="taggk"><ul>
+
+</ul>
+
+<div style="clear:both;"></div>
+<div class="qhmore"><a href="<span style='color:red;font-size:9pt'>转换链接错误</span>">更多&gt;&gt;</a></div>
+</div>
+</div>    </div>
+
+   </div>
+  </div>
+
+
+
+
+</div>
+
+
+<div class="syzy">
+    <div class="syzy_w">
+        <div class="dzzy_nr">
+        <div class="txt"><span>数字资源</span></div>
+            <ul class="scrollU2">
+                
+                <div style="clear:both;"></div>
+                <li class="sd0a1" id="m0a1"><a href="szzy/zwzy.htm">中文资源</a></li>
+                <li class="sd0a2" id="m0a2"><a href="szzy/wwzy.htm">外文资源</a></li>
+                <li class="sd0a2" id="m0a3"><a href="szzy/syzy.htm">试用资源</a></li>
+
+            </ul>
+            <div class="bor03 cont">
+                <div id="c0a1">
+                    <div class="syzy_nr"> <ul>
+<li>
+<a href="info/1065/1611.htm" target="_blank">中国知网</a>
+<a href="info/1065/1613.htm" target="_blank">超星期刊</a>
+<a href="info/1065/1612.htm" target="_blank">维普中文期刊数据库</a>
+<a href="info/1065/1614.htm" target="_blank">读秀学术搜索</a>
+<a href="info/1065/1625.htm" target="_blank">爱迪科森网上报告厅</a>
+<a href="info/1065/1615.htm" target="_blank">超星名师讲坛</a>
+<a href="info/1065/2036.htm" target="_blank">百度文库高校版</a>
+<a href="info/1065/1618.htm" target="_blank">笔杆论文写作助手</a>
+<a href="info/1065/4632.htm" target="_blank">Mirror（米乐）心理资源服务平台</a>
+<a href="info/1065/1962.htm" target="_blank">超星汇雅电子书</a>
+<a href="info/1065/3851.htm" target="_blank">法信</a>
+<a href="info/1065/4113.htm" target="_blank">雅乐经典视频数据库</a>
+<a href="info/1065/2942.htm" target="_blank">师范教育专题数据库</a>
+<a href="info/1065/3412.htm" target="_blank">研图学堂考研学习平台</a>
+<a href="info/1065/1885.htm" target="_blank">文泉学堂高等教育学科建设知识库</a>
+</li>
+</ul><script>_showDynClickBatch(['dynclicks_u11_1611','dynclicks_u11_1613','dynclicks_u11_1612','dynclicks_u11_1614','dynclicks_u11_1625','dynclicks_u11_1615','dynclicks_u11_2036','dynclicks_u11_1618','dynclicks_u11_4632','dynclicks_u11_1962','dynclicks_u11_3851','dynclicks_u11_4113','dynclicks_u11_2942','dynclicks_u11_3412','dynclicks_u11_1885'],[1611,1613,1612,1614,1625,1615,2036,1618,4632,1962,3851,4113,2942,3412,1885],"wbnews", 1555086018)</script>
+</div><a href="szzy/zwzy.htm" class="more2">查看更多>></a>
+                </div>
+                <div class="hidden" id="c0a2">
+                    <div class="syzy_nr"> <ul>
+<li>
+<a href="info/1066/7742.htm" target="_blank">Elsevier ScienceDirect</a>
+<a href="info/1066/1682.htm" target="_blank">SpiScholar学术资源在线</a>
+<a href="info/1066/1681.htm" target="_blank">MathSciNet</a>
+<a href="info/1066/1683.htm" target="_blank">百链外文搜索引擎</a>
+<a href="info/1066/1685.htm" target="_blank">外文数字图书（本地镜像）</a>
+<a href="info/1066/7879.htm" target="_blank">启研外文文献服务平台</a>
+<a href="info/1066/7739.htm" target="_blank">是科外文电子书数据库</a>
+<a href="info/1066/5973.htm" target="_blank">Aiacademic爱科研学术智能平台</a>
+<a href="info/1066/5477.htm" target="_blank">NSTL外文文献数据库</a>
+<a href="info/1066/2957.htm" target="_blank">寻知学术文献数据检索平台</a>
+<a href="info/1066/1686.htm" target="_blank">中国科技图书文献中心开放资源集成...</a>
+<a href="info/1066/1687.htm" target="_blank">中国科技图书文献中心外文回溯期刊...</a>
+<a href="info/1066/1688.htm" target="_blank">国家自然科学基金基础研究知识库</a>
+<a href="info/1066/1689.htm" target="_blank">国家哲学社会科学文献中心</a>
+</li>
+</ul><script>_showDynClickBatch(['dynclicks_u12_7742','dynclicks_u12_1682','dynclicks_u12_1681','dynclicks_u12_1683','dynclicks_u12_1685','dynclicks_u12_7879','dynclicks_u12_7739','dynclicks_u12_5973','dynclicks_u12_5477','dynclicks_u12_2957','dynclicks_u12_1686','dynclicks_u12_1687','dynclicks_u12_1688','dynclicks_u12_1689'],[7742,1682,1681,1683,1685,7879,7739,5973,5477,2957,1686,1687,1688,1689],"wbnews", 1555086018)</script>
+</div><a href="szzy/wwzy.htm" class="more2">查看更多>></a>
+   
+                </div>
+                <div class="hidden" id="c0a3">
+                    <div class="syzy_nr"> <ul>
+<li>
+<a href="info/1091/7878.htm" target="_blank">启研外文文献服务平台</a>
+<a href="info/1091/7873.htm" target="_blank">经管大讲堂——新时代经济管理视频...</a>
+<a href="info/1091/7871.htm" target="_blank">上岸考研网</a>
+<a href="info/1091/7832.htm" target="_blank">泛研全球科研项目数据库</a>
+<a href="info/1091/7738.htm" target="_blank">是科外文电子书数据库</a>
+<a href="info/1091/7736.htm" target="_blank">华艺电子书数据库</a>
+<a href="info/1091/7734.htm" target="_blank">华艺学术文献数据库</a>
+<a href="info/1091/7694.htm" target="_blank">闻道科学导航</a>
+<a href="info/1091/7525.htm" target="_blank">AI素养与技能提升数据库</a>
+<a href="info/1091/7523.htm" target="_blank">高校信息素养教育数据库</a>
+<a href="info/1091/7422.htm" target="_blank">玉京AI辅助科研系统</a>
+<a href="info/1091/7417.htm" target="_blank">弘毅就业创业职业能力研修平台</a>
+<a href="info/1091/7411.htm" target="_blank">知铎晚清民国教育文库</a>
+<a href="info/1091/6771.htm" target="_blank">中国社会科学研究数据库</a>
+<a href="info/1091/6661.htm" target="_blank">元阅读精品电子书有声书</a>
+</li>
+</ul><script>_showDynClickBatch(['dynclicks_u13_7878','dynclicks_u13_7873','dynclicks_u13_7871','dynclicks_u13_7832','dynclicks_u13_7738','dynclicks_u13_7736','dynclicks_u13_7734','dynclicks_u13_7694','dynclicks_u13_7525','dynclicks_u13_7523','dynclicks_u13_7422','dynclicks_u13_7417','dynclicks_u13_7411','dynclicks_u13_6771','dynclicks_u13_6661'],[7878,7873,7871,7832,7738,7736,7734,7694,7525,7523,7422,7417,7411,6771,6661],"wbnews", 1555086018)</script>
+</div><a href="szzy/syzy.htm" class="more2">查看更多>></a>
+                </div>
+                
+            </div>
+            
+           </div> 
+
+            <div class="syzy_img"><img src="images/zy_tb2.png"></div>
+            <div style="clear:both;"></div>
+        </div>
+    <div class="klijrr"><div class="dzzy_nr" style="width: 1140px; margin-bottom: 30px;">
+        <div class="txt"><span>新书推荐</span></div>
+</div>
+
+<div class="xstj xstjqh">
+<div class="bd">
+<ul>
+   <li><a href="info/1261/7914.htm" target="_blank" title="王的困惑：甲骨上的战争、祭祀、梦和牙疼以及商代王族的故事">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/A/CD/11/C973B5E2E3F1311059EF4B9A9E4_564CEA22_2B95C.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">王的困惑：甲骨上的战争、祭祀、梦和牙疼以及商代王族的故事</h3>
+</a></li>
+   <li><a href="info/1261/7912.htm" target="_blank" title="闲情偶寄">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/3/B8/C7/B5A86749C9EFAC045AA55369DFD_8C2168E9_32B66.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">闲情偶寄</h3>
+</a></li>
+   <li><a href="info/1261/7910.htm" target="_blank" title="文化的阐释">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/0/80/EC/935141D7AE47C392CFE335F1DE1_37C6D422_3BC78.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">文化的阐释</h3>
+</a></li>
+   <li><a href="info/1261/7908.htm" target="_blank" title="世界政治中的长周期">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/6/74/79/2308F1C02F2ACF442BEB344B344_5AA3A886_2E3D9.png" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">世界政治中的长周期</h3>
+</a></li>
+   <li><a href="info/1261/7906.htm" target="_blank" title="走进明朝：从严峻冷酷到自由放任">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/9/D7/C3/59E92DBDB7DFA8ADC3FBB2F3DC2_A3EB50BD_202A0.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">走进明朝：从严峻冷酷到自由放任</h3>
+</a></li>
+   <li><a href="info/1261/7904.htm" target="_blank" title="冷山">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/1/38/F7/AC2E09D12D8D9BB3B88241D4138_FDB9BB03_243C4.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">冷山</h3>
+</a></li>
+   <li><a href="info/1261/7902.htm" target="_blank" title="花朵与探险2：玛丽安娜·诺斯的旅行回忆">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/8/B7/DA/5D5735B31062D1EC786D16B5BC2_1FF55762_2DD48.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">花朵与探险2：玛丽安娜·诺斯的旅行回忆</h3>
+</a></li>
+   <li><a href="info/1261/7900.htm" target="_blank" title="现代操作系统">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/9/60/D9/DDDD88E71E8CF3259F396CA7775_1A086B2F_2D492.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">现代操作系统</h3>
+</a></li>
+   <li><a href="info/1261/7898.htm" target="_blank" title="家事大吉">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/4/89/CA/ECA1C3158CD7C9D63D76E1CECCE_B0210AF7_2019F.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">家事大吉</h3>
+</a></li>
+   <li><a href="info/1261/7896.htm" target="_blank" title="笔下欢喜">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/6/15/AF/93B5AA644FA2D1C8CEC391DBE54_FD89FC57_1F04E.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">笔下欢喜</h3>
+</a></li>
+   <li><a href="info/1261/7894.htm" target="_blank" title="寻蜂记：一位昆虫学家的环球旅行">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/8/19/D7/FD8DC64A57E68511827B3CAC00F_EAAF1071_2E52A.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">寻蜂记：一位昆虫学家的环球旅行</h3>
+</a></li>
+   <li><a href="info/1261/7892.htm" target="_blank" title="说不尽的长安城">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/8/01/C9/520E867B0BE3549443A69A78C1B_34EBCD55_3FA3D.png" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">说不尽的长安城</h3>
+</a></li>
+   <li><a href="info/1261/7890.htm" target="_blank" title="做个奇思妙想的班主任">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/4/A0/67/7D65E03F6D525AD248EEAA4DD27_BC4F8582_19E33.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">做个奇思妙想的班主任</h3>
+</a></li>
+   <li><a href="info/1261/7888.htm" target="_blank" title="中国史学史讲义稿">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/4/BF/72/50AF2C7CB7EE9A181CD6D64518A_DC95F33B_25249.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">中国史学史讲义稿</h3>
+</a></li>
+   <li><a href="info/1261/7886.htm" target="_blank" title="茶的真相">
+ <div class="img-box pointer-engine engine_text_jump js-crop-img">
+                            <img src="/__local/D/62/97/0334DA24B1F677C157C8ECB20F1_9FF16AD2_13206.jpg" alt="">
+ </div>
+ <h3 class="name titlefsnull titledfw">茶的真相</h3>
+</a></li>
+</ul>
+</div>
+<div class="hd">
+    <a class="next"></a>
+    <a class="prev"></a>
+</div>
+</div>
+
+<div style="padding: 20px 0;"><a target="_blank" href="ydtj.htm" class="more fr" style="float:right;font-size: 15px;color: #666;line-height: 40px;margin-top: -20px;margin-right: 15px;">查看更多>></a></div><script>_showDynClickBatch(['dynclicks_u14_7914','dynclicks_u14_7912','dynclicks_u14_7910','dynclicks_u14_7908','dynclicks_u14_7906','dynclicks_u14_7904','dynclicks_u14_7902','dynclicks_u14_7900','dynclicks_u14_7898','dynclicks_u14_7896','dynclicks_u14_7894','dynclicks_u14_7892','dynclicks_u14_7890','dynclicks_u14_7888','dynclicks_u14_7886'],[7914,7912,7910,7908,7906,7904,7902,7900,7898,7896,7894,7892,7890,7888,7886],"wbnews", 1555086018)</script>
+</div>    
+
+
+
+<div class="dajg324">
+<div class="link">
+<div class="tzggtop">
+<div class="tzggtoplf">快速链接</div>
+<div class="tzggtoprr"></div>
+</div>
+
+<div class="link_nr"><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="index.htm" target="_blank">馆长信箱：xynutsg@126.com</a>
+</div>
+
+
+
+</div>
+
+<div class="kklink">
+<ul>
+
+<li>    
+    
+    
+    
+  
+
+    
+<script language="javascript">    
+<!--    
+    function doLinksu16(o)    
+    {    
+        var link=document.getElementsByName("su16")[0];    
+        var index=link.selectedIndex;    
+        if (index==-1 || index>=link.options.length)    
+        {    
+          return;    
+        }    
+        var value = link.options[index].value;    
+        var obj = document.getElementById("hu16");    
+        obj.href = value;
+        var wburlid =link.options[index].getAttribute("aa202273aa");
+        _addDynClicks('wburl',1555086018,wburlid)
+            
+                     obj.target = "_blank"
+                    
+         if(document.all){
+          obj.click();     
+        }         
+         else 
+        { 
+          window.open(value);
+         }
+       
+       if(o.selectedIndex != 0)    
+       {    
+           o.selectedIndex = 0;    
+       }    
+    }    
+-->    
+</script>  
+<table>    
+    <tr><td align="center">    
+            <span class="titlestyle202273"></span> <a id="hu16"></a>    
+            <select name="su16" class="selectstyle202273" onChange="doLinksu16(this)">    
+                <option value="">　　　--相关链接--</option>    
+                <option vsbhrefname="value" aa202273aa="63327" value="https://www.xynu.edu.cn/">学校主页    
+                </select>    
+        </td><tr></table></li>
+<li>    
+    
+    
+    
+  
+
+    
+<script language="javascript">    
+<!--    
+    function doLinksu17(o)    
+    {    
+        var link=document.getElementsByName("su17")[0];    
+        var index=link.selectedIndex;    
+        if (index==-1 || index>=link.options.length)    
+        {    
+          return;    
+        }    
+        var value = link.options[index].value;    
+        var obj = document.getElementById("hu17");    
+        obj.href = value;
+        var wburlid =link.options[index].getAttribute("aa202272aa");
+        _addDynClicks('wburl',1555086018,wburlid)
+            
+                     obj.target = "_blank"
+                    
+         if(document.all){
+          obj.click();     
+        }         
+         else 
+        { 
+          window.open(value);
+         }
+       
+       if(o.selectedIndex != 0)    
+       {    
+           o.selectedIndex = 0;    
+       }    
+    }    
+-->    
+</script>  
+<table>    
+    <tr><td align="center">    
+            <span class="titlestyle202272"></span> <a id="hu17"></a>    
+            <select name="su17" class="selectstyle202272" onChange="doLinksu17(this)">    
+                <option value="">　　　--淮河校区--</option>    
+                <option vsbhrefname="value" aa202272aa="63389" value="http://117.158.166.120:8180/opac/">淮河校区阿法迪    
+                </select>    
+        </td><tr></table></li>
+
+</ul>
+</div>
+<div style="clear:both;"></div>
+</div>
+</div>
+<div class="banhs">
+<div class="w12fg00">
+<div class="bq"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p style="text-align: center;">信阳师范大学谭山校区图书馆</p><p style="text-align: center;">地址：河南省信阳市浉河区南湖路237号</p></div>
+
+<div class="ewm">    <li><img src="images/wxewm.jpg"><br>图书馆公众号</li> </li>
+            
+</div>
+
+<div class="w12fg00"><script language="javascript" src="_dwr/engine.js"></script><script language="javascript" src="_dwr/util.js"></script><script language="javascript" src="_dwr/interface/PageCounterDWR.js"></script><div style="    font-size: 15px;">
+<span style="color:#fff;">访问量：</span>
+<span id="a257454" name="a257454" style="color:#fff;"></span>   
+
+<script>
+function getvisittimea257454()
+{       
+    PageCounterDWR.getVisittime('1555086018','1001','TOTAL_COUNTER','0','10',callbackdataa257454)
+}
+function callbackdataa257454(data)
+{
+    document.getElementById("a257454").innerHTML = data; 
+}
+getvisittimea257454();
+</script>
+</div></div>
+
+</div>
+</div>
+
+<script>jQuery(".xstjqh").slide({titCell:".hd ul",mainCell:".bd ul",autoPage:true,effect:"leftLoop",autoPlay:true,vis:7});</script>
+
+</body></html>
