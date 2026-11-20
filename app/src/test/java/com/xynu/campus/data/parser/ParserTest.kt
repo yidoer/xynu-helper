@@ -5,7 +5,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * 使用脱敏的真实页面结构样例验证解析器。
+ * 使用脱敏的页面结构样例验证解析器。
  * 解析层只依赖 Jsoup/JSON 和 data model，因此可以直接在纯 JVM 测试。
  */
 class ParserTest {
