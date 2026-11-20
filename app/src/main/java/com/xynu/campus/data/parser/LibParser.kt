@@ -69,18 +69,21 @@ object LibParser {
      * 数组项字段（中文键）：索书号 / 条形码 / 部门名称 / 架位号 / 书刊状态
      */
     fun parseHoldings(json: String): List<BookHolding> {
-        val arr = JSONArray(json)
-        val list = ArrayList<BookHolding>(arr.length())
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            list += BookHolding(
-                callNumber = o.optString("索书号"),
-                barcode = o.optString("条形码"),
-                location = o.optString("部门名称"),
-                status = o.optString("书刊状态")
-            )
-        }
-        return list
+        if (json.isBlank()) return emptyList()
+        return runCatching {
+            val arr = JSONArray(json)
+            val list = ArrayList<BookHolding>(arr.length())
+            for (i in 0 until arr.length()) {
+                val o = arr.optJSONObject(i) ?: continue
+                list += BookHolding(
+                    callNumber = o.optString("索书号"),
+                    barcode = o.optString("条形码"),
+                    location = o.optString("部门名称"),
+                    status = o.optString("书刊状态")
+                )
+            }
+            list
+        }.getOrDefault(emptyList())
     }
 
     /**

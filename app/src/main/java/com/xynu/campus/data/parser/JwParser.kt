@@ -18,11 +18,12 @@ object JwParser {
      */
     fun parseSchedule(payload: String): List<Course> {
         val trimmed = payload.trim()
+        if (trimmed.isEmpty()) return emptyList()
         if (trimmed.startsWith("{") && trimmed.contains("\"kbList\"")) {
-            return parseScheduleJson(JSONObject(trimmed))
+            return runCatching { parseScheduleJson(JSONObject(trimmed)) }.getOrDefault(emptyList())
         }
         if (trimmed.startsWith("[")) {
-            return parseScheduleJsonArray(JSONArray(trimmed))
+            return runCatching { parseScheduleJsonArray(JSONArray(trimmed)) }.getOrDefault(emptyList())
         }
         return parseScheduleHtml(payload)
     }
@@ -161,12 +162,17 @@ object JwParser {
     /** 解析成绩：兼容 JSON 数组 / {items:[]} / HTML */
     fun parseScores(payload: String): List<ScoreItem> {
         val trimmed = payload.trim()
+        if (trimmed.isEmpty()) return emptyList()
         if (trimmed.startsWith("{")) {
-            val o = JSONObject(trimmed)
-            val arr = o.optJSONArray("items") ?: o.optJSONArray("xxb") ?: return emptyList()
-            return parseScoreArray(arr)
+            return runCatching {
+                val o = JSONObject(trimmed)
+                val arr = o.optJSONArray("items") ?: o.optJSONArray("xxb") ?: return@runCatching emptyList()
+                parseScoreArray(arr)
+            }.getOrDefault(emptyList())
         }
-        if (trimmed.startsWith("[")) return parseScoreArray(JSONArray(trimmed))
+        if (trimmed.startsWith("[")) {
+            return runCatching { parseScoreArray(JSONArray(trimmed)) }.getOrDefault(emptyList())
+        }
         return parseScoreHtml(payload)
     }
 
