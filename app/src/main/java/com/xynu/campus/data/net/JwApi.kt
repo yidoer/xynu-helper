@@ -61,9 +61,18 @@ fun buildFreeClassroomQuery(
 private fun weekdayLabel(day: Int): String =
     listOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日").getOrElse(day) { "星期$day" }
 
-/** 竞态保护使用的纯判断。 */
-internal fun isCurrentFreeRoomsRequest(requestId: Long, latestRequestId: Long): Boolean =
-    requestId == latestRequestId
+/** 请求回调的纯并发协调器：新请求取代旧请求，旧回调只能被忽略。 */
+internal class RequestCoordinator {
+    private var latestRequestId = 0L
+
+    fun next(): Long = ++latestRequestId
+
+    fun invalidate() {
+        latestRequestId++
+    }
+
+    fun isCurrent(requestId: Long): Boolean = requestId == latestRequestId
+}
 
 /**
  * 教务系统（正方 V9）客户端 —— 直连学校 5 条线路，App 内自动容错。

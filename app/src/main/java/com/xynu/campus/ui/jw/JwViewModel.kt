@@ -10,9 +10,9 @@ import com.xynu.campus.data.model.TermOption
 import com.xynu.campus.data.net.AppCookieJar
 import com.xynu.campus.data.net.HttpClientFactory
 import com.xynu.campus.data.net.JwApi
+import com.xynu.campus.data.net.RequestCoordinator
 import com.xynu.campus.data.net.SessionExpiredException
 import com.xynu.campus.data.net.buildFreeClassroomQuery
-import com.xynu.campus.data.net.isCurrentFreeRoomsRequest
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
 import java.time.LocalDate
@@ -69,7 +69,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(JwUiState())
     val state: StateFlow<JwUiState> = _state.asStateFlow()
     private var freeRoomsJob: Job? = null
-    private var freeRoomsRequestId = 0L
+    private val freeRoomsRequests = RequestCoordinator()
     private var scheduleRequestId = 0L
     private var scheduleTermsRequestId = 0L
     private var scoreTermsRequestId = 0L
@@ -77,7 +77,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun invalidateRequests() {
         freeRoomsJob?.cancel()
-        freeRoomsRequestId++
+        freeRoomsRequests.invalidate()
         scheduleRequestId++
         scheduleTermsRequestId++
         scoreTermsRequestId++
@@ -368,7 +368,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     /** 空教室查询；新请求会取消并取代旧请求。 */
     fun loadFreeRooms(jc: Int = 1) {
         freeRoomsJob?.cancel()
-        val requestId = ++freeRoomsRequestId
+        val requestId = freeRoomsRequests.next()
         val pendingQuery = buildFreeClassroomQuery(LocalDate.now(), jc, term = null, termSource = "正在读取教务当前选项")
         freeRoomsJob = viewModelScope.launch {
             _state.value = _state.value.copy(
@@ -378,7 +378,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             )
             try {
                 val result = withContext(Dispatchers.IO) { api.fetchFreeClassroomsWithQuery(jc) }
-                if (!isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) return@launch
+                if (!freeRoomsRequests.isCurrent(requestId)) return@launch
                 _state.value = _state.value.copy(
                     loadingRooms = false,
                     rooms = result.rooms,
@@ -386,11 +386,11 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     roomsError = null
                 )
             } catch (e: SessionExpiredException) {
-                if (isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) handleSessionExpired(e)
+                if (freeRoomsRequests.isCurrent(requestId)) handleSessionExpired(e)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (!isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) return@launch
+                if (!freeRoomsRequests.isCurrent(requestId)) return@launch
                 _state.value = _state.value.copy(
                     loadingRooms = false,
                     roomsError = e.message ?: "空教室查询失败"
