@@ -45,6 +45,45 @@ app/build/outputs/apk/debug/app-debug.apk
 # 产物：app/build/outputs/apk/debug/app-debug.apk
 ```
 
+### Release 构建与签名
+
+正式发布的 APK 使用独立的 release keystore 签名。keystore 文件与密码文件均**不提交到 git**（已在 `.gitignore` 中排除）。
+
+**1. 生成 keystore（首次一次性）**
+
+```bash
+keytool -genkeypair -v \
+  -keystore app/xynu-campus-release.keystore \
+  -alias xynu-campus -keyalg RSA -keysize 2048 -validity 10950 \
+  -dname "CN=xynu-campus, OU=dev, O=xynu-campus, L=Xinyang, ST=Henan, C=CN"
+```
+
+**2. 创建 `app/keystore.properties`**（与 keystore 同目录，内容不提交）
+
+```properties
+storeFile=xynu-campus-release.keystore
+storePassword=<你的 keystore 密码>
+keyAlias=xynu-campus
+keyPassword=<你的 key 密码>
+```
+
+**3. 构建签名 APK**
+
+```bash
+./gradlew :app:assembleRelease
+# 产物：app/build/outputs/apk/release/app-release.apk
+```
+
+`app/build.gradle.kts` 会在 `keystore.properties` 存在时自动挂载 release signingConfig；文件缺失时 release 构建会回退为未签名（CI/无密钥环境仍可编译通过）。
+
+**4. 验证签名**
+
+```bash
+apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+```
+
+> ⚠️ 请妥善保管 keystore 与密码：丢失后无法以同一签名发布更新，用户将无法覆盖安装升级。
+
 ### 使用说明
 
 1. **馆藏检索**：无需登录，进入"馆藏检索"→ 输入书名/作者→ 搜索 → 点"查看馆藏"看索书号和在馆状态
