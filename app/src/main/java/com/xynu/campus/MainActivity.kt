@@ -140,7 +140,7 @@ fun CampusApp() {
 
         composable(Routes.JW_LOGIN) {
             JwLoginScreen(jwVm, onBack = { navController.popBackStack() },
-                onSuccess = { navController.popBackStack(Routes.HOME, false) })
+                onSuccess = { navController.popBackStack() })
         }
 
         composable(Routes.SCHEDULE) {

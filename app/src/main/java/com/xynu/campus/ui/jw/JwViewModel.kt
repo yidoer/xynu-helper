@@ -11,9 +11,14 @@ import com.xynu.campus.data.net.AppCookieJar
 import com.xynu.campus.data.net.HttpClientFactory
 import com.xynu.campus.data.net.JwApi
 import com.xynu.campus.data.net.SessionExpiredException
+import com.xynu.campus.data.net.buildFreeClassroomQuery
+import com.xynu.campus.data.net.isCurrentFreeRoomsRequest
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
+import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +57,7 @@ data class JwUiState(
     val loadingRooms: Boolean = false,
     val rooms: List<String> = emptyList(),
     val roomsError: String? = null,
+    val roomsQuery: String = "",
 )
 
 /**
@@ -62,8 +68,24 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     private val api = JwApi(HttpClientFactory.create())
     private val _state = MutableStateFlow(JwUiState())
     val state: StateFlow<JwUiState> = _state.asStateFlow()
+    private var freeRoomsJob: Job? = null
+    private var freeRoomsRequestId = 0L
+    private var scheduleRequestId = 0L
+    private var scheduleTermsRequestId = 0L
+    private var scoreTermsRequestId = 0L
+    private var scoreRequestId = 0L
+
+    private fun invalidateRequests() {
+        freeRoomsJob?.cancel()
+        freeRoomsRequestId++
+        scheduleRequestId++
+        scheduleTermsRequestId++
+        scoreTermsRequestId++
+        scoreRequestId++
+    }
 
     private fun handleSessionExpired(error: SessionExpiredException) {
+        invalidateRequests()
         AppCookieJar.clear(error.host)
         _state.value = _state.value.copy(
             loggedIn = false,
@@ -78,6 +100,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             scheduleError = null,
             scoreError = null,
             roomsError = null,
+            roomsQuery = "",
             loginMessage = "教务系统登录已过期，请重新登录"
         )
     }
@@ -181,6 +204,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun logout() {
+        invalidateRequests()
         viewModelScope.launch {
             try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (_: Exception) { }
             api.hosts.forEach(AppCookieJar::clear)
@@ -189,22 +213,25 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadSchedule(term: TermOption? = null) {
+        val useTerm = term ?: _state.value.scheduleTerm
+        val requestId = ++scheduleRequestId
         viewModelScope.launch {
             _state.value = _state.value.copy(loadingSchedule = true, scheduleError = null)
-            val useTerm = term ?: _state.value.scheduleTerm
             try {
                 val list = withContext(Dispatchers.IO) {
                     if (useTerm != null) api.fetchSchedule(useTerm.xnm, useTerm.xqm)
                     else api.fetchSchedule()
                 }
+                if (requestId != scheduleRequestId) return@launch
                 _state.value = _state.value.copy(
                     loadingSchedule = false,
                     schedule = list,
                     scheduleTerm = useTerm ?: _state.value.scheduleTerm
                 )
             } catch (e: SessionExpiredException) {
-                handleSessionExpired(e)
+                if (requestId == scheduleRequestId) handleSessionExpired(e)
             } catch (e: Exception) {
+                if (requestId != scheduleRequestId) return@launch
                 _state.value = _state.value.copy(
                     loadingSchedule = false,
                     scheduleError = e.message ?: "加载课表失败"
@@ -228,12 +255,14 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
 
     /** 加载课表学期候选 */
     fun loadScheduleTerms() {
+        val requestId = ++scheduleTermsRequestId
         viewModelScope.launch {
             try {
                 val terms = withContext(Dispatchers.IO) { api.fetchTermOptions() }
+                if (requestId != scheduleTermsRequestId) return@launch
                 _state.value = _state.value.copy(scheduleTerms = terms)
             } catch (e: SessionExpiredException) {
-                handleSessionExpired(e)
+                if (requestId == scheduleTermsRequestId) handleSessionExpired(e)
             } catch (_: Exception) { }
         }
     }
@@ -264,6 +293,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadTerms() {
+        val requestId = ++scoreTermsRequestId
         viewModelScope.launch {
             // 先恢复用户上次选中的成绩学期
             val saved = try {
@@ -273,6 +303,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
 
             try {
                 val terms = withContext(Dispatchers.IO) { api.fetchTermOptions() }
+                if (requestId != scoreTermsRequestId) return@launch
                 // 优先用保存的学期（在 terms 列表里能找到的话），否则用第一个
                 val initial = savedTerm?.let { s -> terms.firstOrNull { it.xnm == s.xnm && it.xqm == s.xqm } }
                     ?: terms.firstOrNull()
@@ -283,8 +314,9 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = _state.value.copy(terms = terms, selectedTerm = initial)
                 loadScores(initial)
             } catch (e: SessionExpiredException) {
-                handleSessionExpired(e)
+                if (requestId == scoreTermsRequestId) handleSessionExpired(e)
             } catch (_: Exception) {
+                if (requestId != scoreTermsRequestId) return@launch
                 // 学期获取失败：兜底用当前学年
                 val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
                 val terms = listOf(
@@ -300,6 +332,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectTerm(term: TermOption) {
+        scoreTermsRequestId++
         _state.value = _state.value.copy(selectedTerm = term)
         // 持久化成绩学期选择，下次进入成绩页时恢复
         viewModelScope.launch {
@@ -313,14 +346,17 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadScores(term: TermOption) {
+        val requestId = ++scoreRequestId
         viewModelScope.launch {
             _state.value = _state.value.copy(loadingScores = true, scoreError = null)
             try {
                 val list = withContext(Dispatchers.IO) { api.fetchScores(term.xnm, term.xqm) }
+                if (requestId != scoreRequestId) return@launch
                 _state.value = _state.value.copy(loadingScores = false, scores = list)
             } catch (e: SessionExpiredException) {
-                handleSessionExpired(e)
+                if (requestId == scoreRequestId) handleSessionExpired(e)
             } catch (e: Exception) {
+                if (requestId != scoreRequestId) return@launch
                 _state.value = _state.value.copy(
                     loadingScores = false,
                     scoreError = e.message ?: "加载成绩失败"
@@ -329,16 +365,32 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 空教室查询 */
+    /** 空教室查询；新请求会取消并取代旧请求。 */
     fun loadFreeRooms(jc: Int = 1) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(loadingRooms = true, roomsError = null)
+        freeRoomsJob?.cancel()
+        val requestId = ++freeRoomsRequestId
+        val pendingQuery = buildFreeClassroomQuery(LocalDate.now(), jc, term = null, termSource = "正在读取教务当前选项")
+        freeRoomsJob = viewModelScope.launch {
+            _state.value = _state.value.copy(
+                loadingRooms = true,
+                roomsError = null,
+                roomsQuery = pendingQuery.display
+            )
             try {
-                val rooms = withContext(Dispatchers.IO) { api.fetchFreeClassrooms(jc) }
-                _state.value = _state.value.copy(loadingRooms = false, rooms = rooms)
+                val result = withContext(Dispatchers.IO) { api.fetchFreeClassroomsWithQuery(jc) }
+                if (!isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) return@launch
+                _state.value = _state.value.copy(
+                    loadingRooms = false,
+                    rooms = result.rooms,
+                    roomsQuery = result.query.display,
+                    roomsError = null
+                )
             } catch (e: SessionExpiredException) {
-                handleSessionExpired(e)
+                if (isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) handleSessionExpired(e)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                if (!isCurrentFreeRoomsRequest(requestId, freeRoomsRequestId)) return@launch
                 _state.value = _state.value.copy(
                     loadingRooms = false,
                     roomsError = e.message ?: "空教室查询失败"

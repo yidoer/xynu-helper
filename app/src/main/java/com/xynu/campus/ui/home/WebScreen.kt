@@ -152,6 +152,11 @@ fun WebScreen(
                                         errorMessage = null
                                     }
                                 },
+                                onLoadSucceeded = {
+                                    isLoading = false
+                                    loadFailed = false
+                                    errorMessage = null
+                                },
                                 onLoadFailed = { message ->
                                     loadFailed = true
                                     isLoading = false
@@ -226,11 +231,17 @@ fun WebScreen(
 private class PageLoadTimers(
     private val handler: Handler,
     private val timeout: Runnable,
-    private val blankCheck: Runnable
+    private val blankCheck: Runnable,
+    private val invalidate: () -> Unit
 ) {
+    private var canceled = false
+
     fun cancel() {
+        if (canceled) return
+        canceled = true
         handler.removeCallbacks(timeout)
         handler.removeCallbacks(blankCheck)
+        invalidate()
     }
 }
 
@@ -241,6 +252,7 @@ private fun WebView.configureH5WebView(
     onUrlChanged: (String) -> Unit,
     onTitleChanged: (String?) -> Unit,
     onLoadingChanged: (Boolean) -> Unit,
+    onLoadSucceeded: () -> Unit,
     onLoadFailed: (String) -> Unit,
     onOpenExternal: (String) -> Unit,
     onWebViewReady: () -> Unit
@@ -267,25 +279,35 @@ private fun WebView.configureH5WebView(
 
     val handler = Handler(Looper.getMainLooper())
     var pageGeneration = 0L
+    var activeUrl = initialUrl
     lateinit var timeout: Runnable
     lateinit var blankCheck: Runnable
+
+    fun failPage(message: String) {
+        handler.removeCallbacks(timeout)
+        handler.removeCallbacks(blankCheck)
+        pageGeneration++
+        onLoadFailed(message)
+    }
+
     timeout = Runnable {
-        onLoadFailed("页面加载超时，请检查网络后重试")
+        failPage("页面加载超时，请检查网络后重试")
     }
     blankCheck = Runnable {
         val generation = pageGeneration
+        val pageUrl = url.orEmpty()
         evaluateJavascript(
             "(function(){var b=document.body;return !!b && " +
                 "(b.innerText.trim().length>0 || b.querySelector('img,iframe,canvas,svg')!==null || " +
                 "b.innerHTML.length>256);})()"
         ) { result ->
             if (generation == pageGeneration && result == "false") {
-                Log.w(TAG, "blank page url=${url.orEmpty()}")
-                onLoadFailed("页面为空白，可能是脚本或网络未完成")
+                Log.w(TAG, "blank page url=$pageUrl")
+                failPage("页面为空白，可能是脚本或网络未完成")
             }
         }
     }
-    setTag(PageLoadTimers(handler, timeout, blankCheck))
+    setTag(PageLoadTimers(handler, timeout, blankCheck) { pageGeneration++ })
 
     webChromeClient = object : WebChromeClient() {
         override fun onReceivedTitle(view: WebView?, title: String?) {
@@ -295,23 +317,24 @@ private fun WebView.configureH5WebView(
     webViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             pageGeneration++
+            activeUrl = url ?: initialUrl
             handler.removeCallbacks(timeout)
             handler.removeCallbacks(blankCheck)
             handler.postDelayed(timeout, PAGE_TIMEOUT_MS)
-            onUrlChanged(url ?: initialUrl)
+            onUrlChanged(activeUrl)
             onLoadingChanged(true)
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
+            val finishedUrl = url ?: initialUrl
+            if (url != null && url != activeUrl) return
             handler.removeCallbacks(timeout)
             handler.removeCallbacks(blankCheck)
-            onUrlChanged(url ?: initialUrl)
+            onUrlChanged(finishedUrl)
+            onLoadSucceeded()
             onLoadingChanged(false)
             cookieManager.flush()
-            val generation = pageGeneration
-            handler.postDelayed({
-                if (generation == pageGeneration) blankCheck.run()
-            }, BLANK_CHECK_DELAY_MS)
+            handler.postDelayed(blankCheck, BLANK_CHECK_DELAY_MS)
         }
 
         override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest): Boolean =
@@ -327,7 +350,7 @@ private fun WebView.configureH5WebView(
             error: WebResourceError?
         ) {
             if (request?.isForMainFrame != false) {
-                onLoadFailed("网络错误：${error?.description ?: "无法连接服务器"}")
+                failPage("网络错误：${error?.description ?: "无法连接服务器"}")
             }
         }
 
@@ -338,7 +361,7 @@ private fun WebView.configureH5WebView(
             description: String?,
             failingUrl: String?
         ) {
-            onLoadFailed("网络错误：${description ?: "无法连接服务器"}")
+            failPage("网络错误：${description ?: "无法连接服务器"}")
         }
 
         override fun onReceivedHttpError(
@@ -347,14 +370,14 @@ private fun WebView.configureH5WebView(
             errorResponse: android.webkit.WebResourceResponse?
         ) {
             if (request?.isForMainFrame == true && errorResponse != null && errorResponse.statusCode >= 400) {
-                onLoadFailed("服务器返回 HTTP ${errorResponse.statusCode}，请稍后重试")
+                failPage("服务器返回 HTTP ${errorResponse.statusCode}，请稍后重试")
             }
         }
 
         override fun onReceivedSslError(view: WebView?, handler: android.webkit.SslErrorHandler?, error: SslError?) {
             Log.e(TAG, "SSL error canceled url=${error?.url} primary=${error?.primaryError}")
             handler?.cancel()
-            onLoadFailed("超星站点证书异常，请稍后重试或用微信打开")
+            failPage("超星站点证书异常，请稍后重试或用微信打开")
         }
     }
     onWebViewReady()
@@ -382,7 +405,7 @@ private fun handleNavigation(url: String, onOpenExternal: (String) -> Unit): Boo
     return true
 }
 
-private fun isInAppWebUrl(url: String): Boolean {
+internal fun isInAppWebUrl(url: String): Boolean {
     return try {
         val scheme = URI(url).scheme?.lowercase()
         scheme == "http" || scheme == "https" || scheme == "about"

@@ -6,12 +6,64 @@ import com.xynu.campus.data.model.JwLoginResult
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
 import com.xynu.campus.data.parser.JwParser
+import java.time.LocalDate
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.jsoup.Jsoup
 import org.json.JSONObject
+
+data class FreeClassroomQuery(
+    val xnm: String,
+    val xqm: String,
+    val xqj: Int,
+    val section: Int,
+    val date: LocalDate,
+    val termSource: String,
+    val termLabel: String
+) {
+    val display: String
+        get() = "$date ${weekdayLabel(xqj)} · $termLabel（$termSource）· 第${section}节"
+}
+
+data class FreeClassroomResult(
+    val rooms: List<String>,
+    val query: FreeClassroomQuery
+)
+
+/** 纯条件构造，日期和学期均可在单测中显式传入。 */
+fun buildFreeClassroomQuery(
+    date: LocalDate,
+    section: Int,
+    term: TermOption? = null,
+    termSource: String = if (term == null) "按日期推算" else "教务页面当前选项"
+): FreeClassroomQuery {
+    require(section in 1..12) { "节次必须在 1 到 12 之间" }
+    val fallbackYear = if (date.monthValue >= 8) date.year else date.year - 1
+    val fallbackTerm = if (date.monthValue in 2..7) "12" else "3"
+    val selected = term ?: TermOption(
+        fallbackYear.toString(),
+        fallbackTerm,
+        "${fallbackYear}-${fallbackYear + 1} 学年第${if (fallbackTerm == "3") 1 else 2}学期"
+    )
+    return FreeClassroomQuery(
+        xnm = selected.xnm,
+        xqm = selected.xqm,
+        xqj = date.dayOfWeek.value,
+        section = section,
+        date = date,
+        termSource = termSource,
+        termLabel = selected.label
+    )
+}
+
+private fun weekdayLabel(day: Int): String =
+    listOf("", "周一", "周二", "周三", "周四", "周五", "周六", "周日").getOrElse(day) { "星期$day" }
+
+/** 竞态保护使用的纯判断。 */
+internal fun isCurrentFreeRoomsRequest(requestId: Long, latestRequestId: Long): Boolean =
+    requestId == latestRequestId
 
 /**
  * 教务系统（正方 V9）客户端 —— 直连学校 5 条线路，App 内自动容错。
@@ -284,27 +336,40 @@ class JwApi(
 
     // ================= 空教室 =================
 
-    suspend fun fetchFreeClassrooms(jc: Int = 1): List<String> {
+    suspend fun fetchFreeClassrooms(jc: Int = 1): List<String> =
+        fetchFreeClassroomsWithQuery(jc).rooms
+
+    suspend fun fetchFreeClassroomsWithQuery(jc: Int = 1): FreeClassroomResult {
         val base = activeBase
-        try {
-            get("$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508", requireSession = true)
+        val today = LocalDate.now()
+        val indexUrl = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508"
+        val indexHtml = try {
+            get(indexUrl, requireSession = true)
         } catch (e: SessionExpiredException) {
             throw e
-        } catch (_: Exception) { }
-        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        } catch (_: Exception) {
+            ""
+        }
+        val selectedTerm = indexHtml.takeIf { it.isNotBlank() }?.let(parser::parseSelectedTerm)
+        val query = buildFreeClassroomQuery(
+            date = today,
+            section = jc,
+            term = selectedTerm,
+            termSource = if (selectedTerm == null) "未读到教务当前选项，按日期推算" else "教务页面当前选项"
+        )
         val form = FormBody.Builder()
-            .add("xnm", "${year - 1}")
-            .add("xqm", "3")
-            .add("xqj", "1")
+            .add("xnm", query.xnm)
+            .add("xqm", query.xqm)
+            .add("xqj", query.xqj.toString())
             .add("jxlid", "")
-            .add("jch", jc.toString())
+            .add("jch", query.section.toString())
             .add("jcsj", "")
             .build()
         val html = post("$base/kbcx/xskbcx_cxKxJscxKb.html?gnmkdm=N253508", form,
-            referer = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508",
+            referer = indexUrl,
             requireSession = true)
         if (html.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
-        return parser.parseFreeClassrooms(html)
+        return FreeClassroomResult(parser.parseFreeClassrooms(html), query)
     }
 
     // ================= 学期 =================

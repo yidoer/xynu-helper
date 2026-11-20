@@ -222,7 +222,18 @@ object JwParser {
         return scores
     }
 
-    /** 从成绩查询页解析学年学期下拉框 */
+    /** 读取教务页面明确标记的当前学期；没有 selected 标记时返回 null。 */
+    fun parseSelectedTerm(html: String): TermOption? {
+        val doc = Jsoup.parse(html)
+        val year = doc.selectFirst("select#xnm option[selected]")?.attr("value").orEmpty()
+        val term = doc.selectFirst("select#xqm option[selected]")?.attr("value").orEmpty()
+        if (year.isBlank() || term.isBlank()) return null
+        val baseYear = year.toIntOrNull() ?: return null
+        val label = "$year-${baseYear + 1} 学年第${if (term == "3") 1 else 2}学期"
+        return TermOption(year, term, label)
+    }
+
+    /** 从成绩查询页解析学年学期下拉框，明确选项排在最前。 */
     fun parseTermOptions(html: String): List<TermOption> {
         val doc = Jsoup.parse(html)
         val years = mutableListOf<String>()
@@ -231,7 +242,6 @@ object JwParser {
             if (v.isNotEmpty()) years += v
         }
         val opts = mutableListOf<TermOption>()
-        // 每个学年生成上下两个学期选项（先第二学期/当前学期优先展示）
         for (year in years) {
             val label = year.take(4) + "-" + (year.take(4).toIntOrNull()?.plus(1) ?: (year + 1))
             opts += TermOption(year, "12", "$label 学年第2学期")
@@ -242,7 +252,17 @@ object JwParser {
             opts += TermOption("${year - 1}", "3", "${year - 1}-${year} 学年第1学期")
             opts += TermOption("${year - 1}", "12", "${year - 1}-${year} 学年第2学期")
         }
-        return opts
+        if (opts.isEmpty()) {
+            val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+            opts += TermOption("${year - 1}", "3", "${year - 1}-${year} 学年第1学期")
+            opts += TermOption("${year - 1}", "12", "${year - 1}-${year} 学年第2学期")
+        }
+        val selected = parseSelectedTerm(html)
+        return if (selected != null) {
+            listOf(selected) + opts.filterNot { it.xnm == selected.xnm && it.xqm == selected.xqm }
+        } else {
+            opts
+        }
     }
 
     /**

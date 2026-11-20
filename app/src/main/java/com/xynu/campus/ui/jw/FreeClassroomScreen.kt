@@ -83,7 +83,8 @@ fun FreeClassroomScreen(
                     }
                 }
                 Text(
-                    "选择节次后自动查询空闲教室（周一）",
+                    if (state.roomsQuery.isBlank()) "按当前日期和教务当前学期查询空闲教室"
+                    else "查询条件：${state.roomsQuery}",
                     fontSize = 12.sp,
                     color = Color(0xFF8E8E93),
                     modifier = Modifier.padding(horizontal = 16.dp)
