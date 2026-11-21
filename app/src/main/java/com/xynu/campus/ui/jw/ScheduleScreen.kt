@@ -187,8 +187,6 @@ fun ScheduleScreen(
                 todayDayOfWeek = state.todayDayOfWeek,
                 actualCurrentWeek = state.currentWeek,
                 scale = scale,
-                scheduleTerms = state.scheduleTerms,
-                selectedTerm = state.scheduleTerm,
                 onZoom = { f ->
                     zoom(f)
                     persistUi(s = (scale * f).coerceIn(MIN_SCALE, MAX_SCALE))
@@ -201,7 +199,6 @@ fun ScheduleScreen(
                     isSummer = it
                     persistUi(summer = it)
                 },
-                onTermSelect = { vm.selectScheduleTerm(it) },
                 onCourseClick = { detailCourse = it },
                 onDateJumpClick = { showDateJump = true },
                 modifier = Modifier.padding(padding)
@@ -219,12 +216,9 @@ private fun ScheduleGrid(
     todayDayOfWeek: Int,
     actualCurrentWeek: Int?,
     scale: Float,
-    scheduleTerms: List<com.xynu.campus.data.model.TermOption>,
-    selectedTerm: com.xynu.campus.data.model.TermOption?,
     onZoom: (Float) -> Unit,
     onWeekChange: (Int) -> Unit,
     onSeasonChange: (Boolean) -> Unit,
-    onTermSelect: (com.xynu.campus.data.model.TermOption) -> Unit,
     onCourseClick: (Course) -> Unit,
     onDateJumpClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -261,32 +255,6 @@ private fun ScheduleGrid(
     Column(modifier = modifier.fillMaxSize()) {
         // 顶部控制区
         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
-            // 学期横滑（与成绩页一致的优雅选择；选中项自动滚到可见区）
-            if (scheduleTerms.size > 1) {
-                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-                val selectedIndex = scheduleTerms.indexOfFirst {
-                    it.xnm == selectedTerm?.xnm && it.xqm == selectedTerm?.xqm
-                }.coerceAtLeast(0)
-                LaunchedEffect(selectedIndex, scheduleTerms.size) {
-                    if (selectedIndex >= 0) listState.animateScrollToItem(selectedIndex)
-                }
-                LazyRow(
-                    state = listState,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    contentPadding = PaddingValues(vertical = 2.dp)
-                ) {
-                    items(scheduleTerms, key = { it.xnm + it.xqm }) { term ->
-                        val selected = selectedTerm?.xnm == term.xnm && selectedTerm?.xqm == term.xqm
-                        FilterChip(
-                            selected = selected,
-                            onClick = { if (!selected) onTermSelect(term) },
-                            label = { Text(term.label, fontSize = fs(11)) },
-                            modifier = Modifier.height(28.dp)
-                        )
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // 「第 N 周」本身就是日历入口：点它选日期，自动定位到对应周
                 Surface(

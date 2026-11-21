@@ -1,6 +1,7 @@
 package com.xynu.campus.data.parser
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -78,13 +79,17 @@ class ParserTest {
         val first = rooms[0]
         assertEquals("大学物理实验室一", first.name)
         assertEquals("B1-101", first.code)
-        assertEquals("B1-101", first.building)
+        // 楼栋取 jxlmc，而不是 cdjc——真实响应里 cdjc 等于场地编号 cdbh，
+        // 用它会退化成「一个房间一组」，教学楼分组功能失效。
+        assertEquals("实验实训楼1", first.building)
         assertEquals("1", first.floor)
         assertEquals("实验室", first.category)
         assertEquals(60, first.seats)
         assertEquals("理工学院", first.campus)
         assertTrue(first.available)
-        assertTrue("副标题应含楼栋与座位数，实际: ${first.subtitle}", first.subtitle.contains("60 座"))
+        // 副标题只放楼层与座位数：列表已按楼栋分组，组标题已展示楼栋名
+        assertTrue("副标题应含座位数，实际: ${first.subtitle}", first.subtitle.contains("60 座"))
+        assertFalse("副标题不应重复楼栋名，实际: ${first.subtitle}", first.subtitle.contains("实验实训楼"))
     }
 
     @Test
@@ -114,22 +119,35 @@ class ParserTest {
     }
 
     @Test
-    fun `cdjy index parser reads every campus option so the UI can widen the query`() {
+    fun `cdjy index parser reads every campus option that actually has rooms`() {
         val html = fixture("cdjy-index.html")
 
         val campuses = JwParser.parseFreeClassroomCampuses(html)
 
         // 教务页面默认只勾选「理工学院」，只照抄它就会漏掉其它校区
-        assertEquals(5, campuses.size)
+        assertEquals(3, campuses.size)
         assertEquals("理工学院", campuses[0].name)
         assertEquals("FD65E581B6103CDBE05394182BD2FD61", campuses[0].id)
         assertTrue(campuses[0].selected)
         assertEquals(
-            listOf("理工学院", "校本部校区", "淮河校区", "信阳职业", "潢川幼儿"),
+            listOf("理工学院", "校本部校区", "淮河校区"),
             campuses.map { it.name }
         )
         // 默认勾选的只有一个校区，其余都要靠 UI 让用户切换
         assertEquals(1, campuses.count { it.selected })
+    }
+
+    @Test
+    fun `cdjy index parser drops campuses whose room data is always empty`() {
+        val html = fixture("cdjy-index.html")
+
+        val names = JwParser.parseFreeClassroomCampuses(html).map { it.name }
+
+        // 「信阳职业」「潢川幼儿」在页面下拉里存在，但任意周次/星期/节次都查不到
+        // 空闲场地（官网本身没有这两项数据）。留着会让用户选中后看到空列表，
+        // 误以为查询失败，所以在解析阶段剔除。
+        assertFalse(names.contains("信阳职业"))
+        assertFalse(names.contains("潢川幼儿"))
     }
 
     @Test

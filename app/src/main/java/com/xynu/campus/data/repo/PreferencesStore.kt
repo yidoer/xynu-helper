@@ -27,6 +27,7 @@ object PreferencesStore {
     private val KEY_SELECTED_TERM = stringPreferencesKey("selected_term")        // 课表学期
     private val KEY_SELECTED_SCORE_TERM = stringPreferencesKey("selected_score_term")  // 成绩学期
     private val KEY_FAVORITES = stringPreferencesKey("favorite_books")           // JSON 数组
+    private val KEY_ROOMS_CAMPUS = stringPreferencesKey("rooms_campus_id")       // 空教室上次选中的校区
 
     // ================ 开学日期 ================
 
@@ -96,6 +97,21 @@ object PreferencesStore {
         val parts = v.split("|")
         return if (parts.size >= 3) Triple(parts[0], parts[1], parts[2]) else null
     }
+
+    // ================ 空教室校区 ================
+
+    /**
+     * 空教室页面上次选中的校区。
+     *
+     * 校区之间数据完全独立（各校区之和不等于「全校」的一个模糊范围，而是互不重叠），
+     * 所以不提供「全校」选项；首次进入由调用方落到主校区，之后沿用用户的选择。
+     */
+    suspend fun setRoomsCampus(ctx: Context, campusId: String) {
+        ctx.prefsStore.edit { it[KEY_ROOMS_CAMPUS] = campusId }
+    }
+
+    suspend fun roomsCampusOnce(ctx: Context): String? =
+        ctx.prefsStore.data.map { it[KEY_ROOMS_CAMPUS] }.first()
 
     // ================ 收藏书架 ================
 

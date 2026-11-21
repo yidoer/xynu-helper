@@ -292,13 +292,16 @@ object JwParser {
                 for (i in 0 until arr.length()) {
                     val it = arr.optJSONObject(i) ?: continue
                     val name = it.optString("cdmc").trim()
-                        .ifBlank { it.optString("jxlmc").trim() }
+                        .ifBlank { it.optString("cdbh").trim() }
                     if (name.isBlank()) continue
                     out += FreeRoom(
                         name = name,
                         code = it.optString("cdbh").trim(),
-                        building = it.optString("cdjc").trim()
-                            .ifBlank { it.optString("jxlmc").trim() },
+                        // 楼栋名在 jxlmc（如「实验实训楼1」「综合教学楼2」）。
+                        // 注意 cdjc 不是楼栋：实测它等于场地编号 cdbh（B1-101 这种），
+                        // 拿它当楼栋会把每个房间都分成一组，分组功能直接失效。
+                        building = it.optString("jxlmc").trim()
+                            .ifBlank { it.optString("cdjc").trim() },
                         floor = it.optString("lch").trim(),
                         category = it.optString("cdlbmc").trim(),
                         seats = it.optString("zws").trim().toIntOrNull() ?: 0,
@@ -395,5 +398,21 @@ object JwParser {
                 else CampusOption(id = value, name = label, selected = option.hasAttr("selected"))
             }
             .distinctBy { it.id }
+            .filterNot { it.id in CAMPUSES_WITHOUT_ROOMS }
     }
+
+    /**
+     * 教务页面「校区」下拉里存在、但**没有任何空闲场地数据**的校区。
+     *
+     * 实测（第 12 周 第 1 节，三者为互不重叠的独立数据集）：
+     *  - 校本部校区 516 间 / 理工学院 90 间 / 淮河校区 141 间 → 合计 747，与全校汇总一致
+     *  - 信阳职业、潢川幼儿 无论换周次、星期、节次都返回 0 条
+     *
+     * 这两个是合作办学点，官网本来就查不到它们的空闲教室，留在列表里只会让用户
+     * 选中后看到一个空列表，误以为是 App 查询失败，所以在解析阶段就剔除。
+     */
+    private val CAMPUSES_WITHOUT_ROOMS = setOf(
+        "71F612E8C42E7AF8E05394182BD23695", // 信阳职业
+        "71F612E8C42F7AF8E05394182BD23695"  // 潢川幼儿
+    )
 }

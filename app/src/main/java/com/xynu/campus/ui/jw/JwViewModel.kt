@@ -67,7 +67,7 @@ data class JwUiState(
     val roomsSection: Int = 1,
     /** 用户选中的查询日期（yyyy-MM-dd）；周次与星期都由它推导，不再单独手选 */
     val roomsDate: String = "",
-    /** 当前校区筛选；空串 = 全校（教务页面默认只给一个校区，会漏查） */
+    /** 当前校区筛选；空串 = 未确定（首次进入尚未读到校区列表时） */
     val roomsCampusId: String = "",
     /** 教务页面提供的校区选项（用于切换筛选） */
     val roomsCampuses: List<CampusOption> = emptyList(),
@@ -81,11 +81,29 @@ data class JwUiState(
  */
 class JwViewModel(application: Application) : AndroidViewModel(application) {
 
+    companion object {
+        /**
+         * 首次进入空教室页面时默认选中的校区：校本部校区。
+         *
+         * 各校区数据互不重叠且量级差异大（校本部 516 / 淮河 141 / 理工 90），
+         * 主校区是绝大多数用户要找的，作为默认值最省一步操作。
+         */
+        private const val DEFAULT_ROOMS_CAMPUS_ID = "1"
+    }
+
     private val api = JwApi(HttpClientFactory.create())
     private val _state = MutableStateFlow(JwUiState())
     val state: StateFlow<JwUiState> = _state.asStateFlow()
     private var freeRoomsJob: Job? = null
     private val freeRoomsRequests = RequestCoordinator()
+    /**
+     * 已保存校区的读取完成信号。
+     *
+     * DataStore 是异步的，首次查询可能抢在「恢复上次选中校区」之前跑完，
+     * 那样就会先用空校区查一次、再被判成「首次进入」落到默认校区，
+     * 用户上次的选择被无声覆盖。查询先等这个信号，读完再决定用哪个校区。
+     */
+    private val roomsCampusReady = kotlinx.coroutines.CompletableDeferred<Unit>()
     private var scheduleRequestId = 0L
     private var scheduleTermsRequestId = 0L
     private var scoreTermsRequestId = 0L
@@ -157,6 +175,21 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             if (saved != null) {
                 val t = TermOption(saved.first, saved.second, saved.third)
                 _state.value = _state.value.copy(scheduleTerm = t)
+            }
+        }
+        // 恢复空教室上次选中的校区（各区数据独立，没有「全校」可回落）
+        viewModelScope.launch {
+            try {
+                val savedCampus = withContext(Dispatchers.IO) {
+                    PreferencesStore.roomsCampusOnce(getApplication())
+                }
+                if (!savedCampus.isNullOrBlank()) {
+                    _state.value = _state.value.copy(roomsCampusId = savedCampus)
+                }
+            } catch (_: Exception) {
+                // 读不到就按「没有历史选择」处理，走默认校区
+            } finally {
+                roomsCampusReady.complete(Unit)
             }
         }
         // 有已存凭据则自动登录，登录成功后自动加载课表
@@ -386,6 +419,31 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * 决定本次查询应该用哪个校区。
+     *
+     * 规则（与用户确认过）：记住上次选中的校区，首次默认主校区「校本部校区」。
+     * 只在 [current] 为空（还没定过校区）时才重新决定，避免每次查询都把用户
+     * 手动切换的校区覆盖回去。
+     */
+    private fun resolveRoomsCampus(campuses: List<CampusOption>, current: String): String {
+        val options = campuses.filter { it.id.isNotBlank() }
+        if (current.isNotBlank() && options.any { it.id == current }) return current
+        return options.firstOrNull { it.id == DEFAULT_ROOMS_CAMPUS_ID }?.id
+            ?: options.firstOrNull()?.id
+            ?: current
+    }
+
+    private fun persistRoomsCampus(campusId: String) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    PreferencesStore.setRoomsCampus(getApplication(), campusId)
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    /**
      * 空教室查询：用户只选「哪一天 + 第几节 + 哪个校区」，周次和星期由日期自动推算。
      *
      * 之所以不让用户单独选周次和星期：教务接口要的是 `zcd`（周次位掩码）+
@@ -393,8 +451,10 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
      * 这种和真实日历对不上的组合。让用户点日历选日期，再由 App 换算，
      * 既不会选错，也不需要在两个下拉框之间来回对照。
      *
-     * 校区默认「全校」（[campusId] 为空串）：教务页面 `select#xqh_id` 默认只选中
-     * 「理工学院」，照抄该值会漏掉校本部、淮河等校区（76 间 vs 全校 591 间）。
+     * 校区不再有「全校」选项：各校区是互不重叠的独立数据集，教务页面的
+     * `select#xqh_id` 默认只选中「理工学院」，照抄会漏掉校本部、淮河等校区。
+     * 这里的处理是「记住用户上次选的校区，首次默认校本部校区」，
+     * 由 [resolveRoomsCampus] 在拿到校区列表后落定。
      */
     fun loadFreeRooms(
         section: Int? = null,
@@ -405,7 +465,6 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
         val requestId = freeRoomsRequests.next()
         val snapshot = _state.value
         val targetSection = (section ?: snapshot.roomsSection).coerceIn(1, 12)
-        val targetCampusId = campusId ?: snapshot.roomsCampusId
 
         // 目标日期：显式传入 > 沿用上次选择 > 今天
         val targetDateMillis = dateMillis
@@ -418,20 +477,24 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
         val weekday = TermCalendar.dayOfWeekOf(targetDateMillis)
         val dateText = TermCalendar.isoDate(targetDate)
 
-        val pendingQuery = buildFreeClassroomQuery(
-            date = LocalDate.of(
-                targetDate.get(Calendar.YEAR),
-                targetDate.get(Calendar.MONTH) + 1,
-                targetDate.get(Calendar.DAY_OF_MONTH)
-            ),
-            section = targetSection,
-            week = week,
-            weekday = weekday,
-            campusId = targetCampusId,
-            term = null,
-            termSource = "正在读取教务当前选项"
-        )
         freeRoomsJob = viewModelScope.launch {
+            // 先等「上次选中校区」读完，否则可能用空校区查一次并覆盖掉用户的选择
+            roomsCampusReady.await()
+            val targetCampusId = campusId ?: _state.value.roomsCampusId
+
+            val pendingQuery = buildFreeClassroomQuery(
+                date = LocalDate.of(
+                    targetDate.get(Calendar.YEAR),
+                    targetDate.get(Calendar.MONTH) + 1,
+                    targetDate.get(Calendar.DAY_OF_MONTH)
+                ),
+                section = targetSection,
+                week = week,
+                weekday = weekday,
+                campusId = targetCampusId,
+                term = null,
+                termSource = "正在读取教务当前选项"
+            )
             _state.value = _state.value.copy(
                 loadingRooms = true,
                 roomsError = null,
@@ -453,14 +516,34 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 if (!freeRoomsRequests.isCurrent(requestId)) return@launch
+
+                // 校区是互不重叠的独立数据集，没有「全校」这个概念可用。
+                // 首次进入时还不知道有哪些校区（列表随响应返回），先按空校区取一次，
+                // 拿到列表后立刻定到默认校区并重查；之后一律沿用已记住的选择。
+                val resolvedCampus = resolveRoomsCampus(result.campuses, targetCampusId)
+                if (resolvedCampus != targetCampusId) {
+                    if (!freeRoomsRequests.isCurrent(requestId)) return@launch
+                    _state.value = _state.value.copy(
+                        roomsCampuses = result.campuses,
+                        roomsCampusId = resolvedCampus
+                    )
+                    persistRoomsCampus(resolvedCampus)
+                    loadFreeRooms(campusId = resolvedCampus)
+                    return@launch
+                }
+
                 _state.value = _state.value.copy(
                     loadingRooms = false,
                     rooms = result.items,
                     roomsQuery = result.query.display,
                     roomsError = null,
                     roomsCampuses = result.campuses,
+                    roomsCampusId = resolvedCampus,
                     roomsTruncated = result.truncated
                 )
+                // 用户手动切换校区时 resolvedCampus 就等于请求值，走不到上面的重查分支，
+                // 所以这里补一次写入——否则「记住上次选的校区」只对自动落默认值生效。
+                if (resolvedCampus.isNotBlank()) persistRoomsCampus(resolvedCampus)
             } catch (e: SessionExpiredException) {
                 if (freeRoomsRequests.isCurrent(requestId)) handleSessionExpired(e)
             } catch (e: CancellationException) {

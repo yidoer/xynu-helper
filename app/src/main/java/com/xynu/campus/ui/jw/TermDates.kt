@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -93,27 +92,41 @@ fun DateJumpDialog(
             initialMillis ?: System.currentTimeMillis()
         }
     )
+    val picked = pickState.selectedDateMillis
 
-    DatePickerDialog(
+    // 不要用 DatePickerDialog 的 title 槽：该槽按 headline 字号排版，
+    // 长中文句子（「选择日期，跳到对应周次」）会被撑成超大灰字并折行，
+    // 顶部灰块也和文字错位，看起来像被裁掉一截。
+    // 统一改用 AlertDialog：标题走普通对话框标题样式，日历本体隐藏自带的
+    // title/headline，只留月份头 + 日期网格，整块日历才能完整显示。
+    AlertDialog(
         onDismissRequest = onDismiss,
+        title = { Text(if (requireTermStart) "请先设置开学日期" else title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (requireTermStart) {
+                    Text(
+                        "开学日期还没有设置，无法把日期换算成第几周。请先到「我的课表」" +
+                            "右上角齿轮里设置开学日期。",
+                        fontSize = 12.sp,
+                        color = Color(0xFF6B7280)
+                    )
+                }
+                Box(Modifier.fillMaxWidth().heightIn(max = 420.dp)) {
+                    DatePicker(
+                        state = pickState,
+                        showModeToggle = false,
+                        title = null,
+                        headline = null
+                    )
+                }
+            }
+        },
         confirmButton = {
-            TextButton(
-                onClick = { pickState.selectedDateMillis?.let(onPick) },
-                enabled = pickState.selectedDateMillis != null
-            ) { Text("确定") }
+            TextButton(onClick = { picked?.let(onPick) }, enabled = picked != null) {
+                Text("确定")
+            }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
-    ) {
-        DatePicker(
-            state = pickState,
-            showModeToggle = false,
-            title = {
-                Text(
-                    if (requireTermStart) "请先设置开学日期" else title,
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 14.sp
-                )
-            }
-        )
-    }
+    )
 }
