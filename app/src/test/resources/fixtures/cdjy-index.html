@@ -1,0 +1,49 @@
+<!doctype html>
+<!--
+  裁剪自 http://jwgl.xynu.edu.cn/jwglxt/cdjy/cdjy_cxKxcdlb.html?gnmkdm=N2155&layout=default
+  只保留空闲场地查询真正依赖的三个控件（已经去掉登录态、学号、姓名等隐私内容）：
+    select#dm_cx   学年学期，选项值形如 "2026-3"
+    select#xqh_id  校区
+    input#xnm / input#xqm 隐藏域，与 dm_cx 所选值一致
+-->
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>空闲场地查询</title></head>
+<body>
+<form id="cdjyForm" method="post">
+  <input type="hidden" name="xnm" value="2026" id="xnm"/>
+  <input type="hidden" name="xqm" value="3" id="xqm"/>
+  <input type="hidden" id="cdyysqkz" name="cdyysqkz" value="0"/>
+  <input type="hidden" id="syr" name="syr" value="MASKED"/>
+  <input type="hidden" id="syrxm" name="syrxm" value="MASKED"/>
+
+  <div class="form-group">
+    <label for="dm_cx">学年学期</label>
+    <select id="dm_cx" name="dm_cx" class="form-control">
+      <option value="2027-12">2027-2028 学年第2学期</option>
+      <option value="2027-3">2027-2028 学年第1学期</option>
+      <option value="2026-12">2026-2027 学年第2学期</option>
+      <option value="2026-3" selected="selected">2026-2027 学年第1学期</option>
+      <option value="2025-12">2025-2026 学年第2学期</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="xqh_id">校区</label>
+    <select id="xqh_id" name="xqh_id" class="form-control">
+      <option value="FD65E581B6103CDBE05394182BD2FD61" selected="selected">理工学院</option>
+      <option value="1">校本部校区</option>
+      <option value="A8B6B519E57A2766E05394182BD2AFA3">淮河校区</option>
+      <option value="71F612E8C42E7AF8E05394182BD23695">信阳职业</option>
+      <option value="71F612E8C42F7AF8E05394182BD23695">潢川幼儿</option>
+    </select>
+  </div>
+
+  <table id="kxcdlb"></table>
+  <div id="kxcdlbPager"></div>
+</form>
+<script>
+  var dqzc = 1, zdzc = 20, zxzc = 1, zdkxzc = 20, dqxq = 1, zdxq = 7;
+  var zxrq = "2026-08-31", zdrq = "2027-01-17";
+</script>
+</body>
+</html>

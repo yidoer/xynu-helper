@@ -136,3 +136,42 @@ data class ReaderInfo(
     val borrowCount: Int = 0,
     val dueCount: Int = 0
 )
+
+/**
+ * 空闲场地（正方 V9 `cdjy/cdjy_cxKxcdlb.html?doType=query` 返回的一条）。
+ * 字段名与教务 JSON 的 items[] 一一对应，便于解析与排错。
+ */
+data class FreeRoom(
+    val name: String,          // cdmc 场地名称，如「综教2101」
+    val code: String,          // cdbh 场地编号，如「LZ2101」
+    val building: String,      // cdjc / jxlmc 楼栋，如「综合教学楼2」
+    val floor: String,         // lch 楼层
+    val category: String,      // cdlbmc 场地类别，如「智慧教室」
+    val seats: Int,            // zws 座位数
+    val availableSeats: Int,   // kszws1 可容纳座位
+    val campus: String,        // xqmc 校区
+    val available: Boolean     // sfkjy == "是"
+) {
+    /** 列表副标题：楼栋 + 楼层 + 座位数 */
+    val subtitle: String
+        get() = listOfNotNull(
+            building.takeIf { it.isNotBlank() },
+            floor.takeIf { it.isNotBlank() }?.let { "$it 楼" },
+            seats.takeIf { it > 0 }?.let { "$it 座" }
+        ).joinToString(" · ")
+}
+
+/**
+ * 空闲场地查询的校区选项。
+ *
+ * 教务页面默认只选中一个校区（本校为「理工学院」），直接照抄该值会漏查其它校区。
+ * [id] 为空串时表示「不限校区」——服务端会返回全校汇总结果。
+ */
+data class CampusOption(
+    val id: String,
+    val name: String,
+    val selected: Boolean = false
+) {
+    /** 是否代表「全校」 */
+    val isAll: Boolean get() = id.isBlank()
+}

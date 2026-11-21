@@ -88,4 +88,7 @@ dependencies {
 
     // 单元测试
     testImplementation("junit:junit:4.13.2")
+    // android.jar 里的 org.json 只是空壳（方法体全部 throw "not mocked"），
+    // 本地 JVM 单测需要真实实现才能覆盖 JSON 解析分支。
+    testImplementation("org.json:json:20240303")
 }

@@ -42,22 +42,14 @@ object PreferencesStore {
 
     /**
      * 计算当前是第几周（1 起）。开学日期未设置返回 null。
-     * 开学日即第 1 周第 1 天（不论星期几），每过 7 天进 1 周。
+     *
+     * 基准与 [com.xynu.campus.ui.jw.TermCalendar] 一致：开学日所在周的周一为
+     * 第 1 周第 1 天。此前这里把开学日本身当作第 1 周第 1 天，而课表表头的
+     * `dateOfWeek` 又按「对齐到周一」算，开学日不在周一时两者会错开一周。
      */
     fun currentWeek(termStartMillis: Long?, now: Calendar = Calendar.getInstance()): Int? {
         if (termStartMillis == null) return null
-        val start = Calendar.getInstance().apply {
-            timeInMillis = termStartMillis
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val today = (now.clone() as Calendar).apply {
-            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-        }
-        val diffDays = ((today.timeInMillis - start.timeInMillis) / (24L * 3600 * 1000)).toInt()
-        if (diffDays < 0) return null
-        return diffDays / 7 + 1
+        return com.xynu.campus.ui.jw.TermCalendar.weekOf(termStartMillis, now.timeInMillis)
     }
 
     /** 当前是星期几（1=周一 … 7=周日），与 Course.dayOfWeek 对齐 */
@@ -76,27 +68,10 @@ object PreferencesStore {
 
     /**
      * 根据开学日期和当前周，给出本周第 N 天（dayOfWeek 1-7）的日期。
-     * 用于课表顶部展示"周一 03-10"这样的行。
+     * 用于课表顶部展示"周一 03-10"这样的行。基准统一由 [com.xynu.campus.ui.jw.TermCalendar] 提供。
      */
-    fun dateOfWeek(termStartMillis: Long?, week: Int, dayOfWeek: Int): Calendar? {
-        if (termStartMillis == null) return null
-        // 开学日对齐到所在周的周一
-        val start = Calendar.getInstance().apply { timeInMillis = termStartMillis }
-        val dow = start.get(Calendar.DAY_OF_WEEK)
-        val offsetToMonday = when (dow) {
-            Calendar.MONDAY -> 0
-            Calendar.TUESDAY -> -1
-            Calendar.WEDNESDAY -> -2
-            Calendar.THURSDAY -> -3
-            Calendar.FRIDAY -> -4
-            Calendar.SATURDAY -> -5
-            Calendar.SUNDAY -> -6
-            else -> 0
-        }
-        start.add(Calendar.DAY_OF_YEAR, offsetToMonday)
-        start.add(Calendar.DAY_OF_YEAR, (week - 1) * 7 + (dayOfWeek - 1))
-        return start
-    }
+    fun dateOfWeek(termStartMillis: Long?, week: Int, dayOfWeek: Int): Calendar? =
+        com.xynu.campus.ui.jw.TermCalendar.dateOf(termStartMillis, week, dayOfWeek)
 
     // ================ 学期选择 ================
 

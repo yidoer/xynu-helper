@@ -1,7 +1,9 @@
 package com.xynu.campus.data.net
 
 import com.xynu.campus.data.crypto.JwRsaCrypto
+import com.xynu.campus.data.model.CampusOption
 import com.xynu.campus.data.model.Course
+import com.xynu.campus.data.model.FreeRoom
 import com.xynu.campus.data.model.JwLoginResult
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
@@ -20,22 +22,34 @@ data class FreeClassroomQuery(
     val xqm: String,
     val xqj: Int,
     val section: Int,
+    val week: Int,
+    val campusId: String,
     val date: LocalDate,
     val termSource: String,
     val termLabel: String
 ) {
     val display: String
-        get() = "$date ${weekdayLabel(xqj)} · $termLabel（$termSource）· 第${section}节"
+        get() {
+            // 只有选中的星期正好是 date 当天时才展示具体日期，
+            // 否则「2026-11-21 周四」这种组合会自相矛盾。
+            val datePart = if (date.dayOfWeek.value == xqj) "$date " else ""
+            return "$datePart${weekdayLabel(xqj)} 第${week}周 · $termLabel（$termSource）· 第${section}节"
+        }
 }
 
 data class FreeClassroomResult(
     val rooms: List<String>,
-    val query: FreeClassroomQuery
+    val items: List<FreeRoom>,
+    val query: FreeClassroomQuery,
+    val truncated: Boolean = false,
+    /** 教务页面提供的校区选项，供 UI 切换「全校 / 指定校区」 */
+    val campuses: List<CampusOption> = emptyList()
 )
 
 enum class JwHttpErrorKind {
     INVALID_QUERY,
     SERVER_REJECTED,
+    MODULE_UNAVAILABLE,
 }
 
 /** 保留教务非 2xx 响应，避免把业务码误显示成无上下文的通用异常。 */
@@ -48,47 +62,106 @@ class JwHttpException(
         get() = classifyJwHttpError(statusCode, responseBody)
 }
 
-internal fun isJwSessionExpiredStatus(statusCode: Int): Boolean = statusCode == 901 || statusCode == 910
+/**
+ * 正方 V9 的状态码语义（实测于 2026-11-21）：
+ *  - `901`：未登录 / 会话失效 —— 这是**唯一**代表会话过期的码。
+ *  - `910`、`911`：模块未开放或当前账号无该模块权限。它们返回的是
+ *    普通 jqGrid JSON（`userModel.usable=false`），在会话**有效**时同样出现
+ *    （例如本账号访问 `kbcx` 空闲教室模块固定得到 910）。
+ * 早期实现把 910 当作会话失效，会让「模块没开放」被误报成「请重新登录」。
+ */
+internal fun isJwSessionExpiredStatus(statusCode: Int): Boolean = statusCode == 901
+
+/** 教务对「模块未开放 / 无权限」使用的状态码 */
+internal fun isJwModuleUnavailableStatus(statusCode: Int): Boolean =
+    statusCode == 910 || statusCode == 911
 
 internal fun classifyJwHttpError(statusCode: Int, responseBody: String): JwHttpErrorKind {
     val body = responseBody.lowercase()
     return when {
+        isJwModuleUnavailableStatus(statusCode) -> JwHttpErrorKind.MODULE_UNAVAILABLE
         statusCode == 400 || statusCode == 422 -> JwHttpErrorKind.INVALID_QUERY
-        listOf("参数", "学期", "星期", "节次", "xnm", "xqm", "xqj", "jch")
+        listOf("参数", "学期", "星期", "节次", "xnm", "xqm", "xqj", "jcd")
             .any(body::contains) -> JwHttpErrorKind.INVALID_QUERY
         else -> JwHttpErrorKind.SERVER_REJECTED
     }
 }
 
-/** 构造正方 V9 空教室接口实际使用的字段，供请求和 JVM 单测共用。 */
+/**
+ * 把周次/节次编码成正方使用的位掩码：`Σ 2^(n-1)`。
+ * 页面 JS（`kxcdlb.js` 的 `queryFunc`）就是这样累加的，服务端按位匹配。
+ */
+internal fun jwBitmask(values: Collection<Int>): Long {
+    var total = 0L
+    for (v in values) {
+        if (v in 1..62) total += 1L shl (v - 1)
+    }
+    return total
+}
+
+/**
+ * 构造 `cdjy/cdjy_cxKxcdlb.html?doType=query` 的表单字段。
+ *
+ * 关键点（均为实测结论）：
+ *  - 查询条件是 `zcd`（周次位掩码）/ `xqj`（星期）/ `jcd`（节次位掩码），
+ *    而不是旧实现里的 `jxlid` / `jch` / `jcsj`。
+ *  - 分页只有 `queryModel.*` 这一族生效；jqGrid 原生的 `page`/`rows` 被忽略，
+ *    只传它们会永远只拿到前 10 条。
+ *  - `xnm` / `xqm` 必须配对 `xqh_id`（校区），否则服务端按全校汇总。
+ */
 internal fun buildFreeClassroomForm(query: FreeClassroomQuery): List<Pair<String, String>> = listOf(
+    "xqh_id" to query.campusId,
     "xnm" to query.xnm,
     "xqm" to query.xqm,
+    "jyfs" to "0",
+    "zcd" to jwBitmask(listOf(query.week)).toString(),
     "xqj" to query.xqj.toString(),
-    "jxlid" to "",
-    "jch" to query.section.toString(),
-    "jcsj" to "",
+    "jcd" to jwBitmask(listOf(query.section)).toString(),
+    "cdlb_id" to "",
+    "cdejlb_id" to "",
+    "qszws" to "",
+    "jszws" to "",
+    "cdmc" to "",
+    "cd_id" to "",
+    "lh" to "",
+    "cdjylx" to "",
+    "sfbhkc" to "",
+    "sfkpk" to "",
+    "queryModel.showCount" to FREE_CLASSROOM_PAGE_SIZE.toString(),
+    "queryModel.currentPage" to "1",
+    "queryModel.sortName" to "cdbh",
+    "queryModel.sortOrder" to "asc",
 )
+
+/** 一次取满，避免用户看到被截断的前 10 条；服务端实际按返回条数为准。 */
+internal const val FREE_CLASSROOM_PAGE_SIZE = 1000
 
 internal fun freeClassroomErrorMessage(error: Throwable): String = when (error) {
     is JwHttpException -> when (error.kind) {
+        JwHttpErrorKind.MODULE_UNAVAILABLE ->
+            "教务未向当前账号开放空闲场地查询（HTTP ${error.statusCode}）"
         JwHttpErrorKind.INVALID_QUERY ->
-            "查询参数不合法（HTTP ${error.statusCode}），请检查当前学期、日期和节次后重试"
+            "查询参数不合法（HTTP ${error.statusCode}），请检查当前学期、周次和节次后重试"
         JwHttpErrorKind.SERVER_REJECTED ->
-            "教务服务器拒绝了空教室查询（HTTP ${error.statusCode}），请重试；若持续失败，请重新登录"
+            "教务服务器拒绝了空教室查询（HTTP ${error.statusCode}），请稍后重试"
     }
     is IOException -> "网络失败，无法连接教务服务器，请检查网络后重试"
     else -> "空教室查询失败：${error.message ?: "未知错误"}"
 }
 
-/** 纯条件构造，日期和学期均可在单测中显式传入。 */
+/** 纯条件构造，日期、周次、星期、学期均可在单测中显式传入。 */
 fun buildFreeClassroomQuery(
     date: LocalDate,
     section: Int,
+    week: Int? = null,
+    weekday: Int? = null,
+    campusId: String = "",
     term: TermOption? = null,
     termSource: String = if (term == null) "按日期推算" else "教务页面当前选项"
 ): FreeClassroomQuery {
     require(section in 1..12) { "节次必须在 1 到 12 之间" }
+    val resolvedWeekday = weekday ?: date.dayOfWeek.value
+    require(resolvedWeekday in 1..7) { "星期必须在 1 到 7 之间" }
     val fallbackYear = if (date.monthValue >= 8) date.year else date.year - 1
     val fallbackTerm = if (date.monthValue in 2..7) "12" else "3"
     val selected = term ?: TermOption(
@@ -99,8 +172,10 @@ fun buildFreeClassroomQuery(
     return FreeClassroomQuery(
         xnm = selected.xnm,
         xqm = selected.xqm,
-        xqj = date.dayOfWeek.value,
+        xqj = resolvedWeekday,
         section = section,
+        week = week ?: 1,
+        campusId = campusId,
         date = date,
         termSource = termSource,
         termLabel = selected.label
@@ -409,26 +484,64 @@ class JwApi(
     suspend fun fetchFreeClassrooms(jc: Int = 1): List<String> =
         fetchFreeClassroomsWithQuery(jc).rooms
 
-    suspend fun fetchFreeClassroomsWithQuery(jc: Int = 1): FreeClassroomResult {
+    /**
+     * 查询空闲场地。
+     *
+     * 真实链路（逆向自 `/jwglxt/js/comp/jwglxt/pkgl/cdjy/kxcdlb.js` 的 `queryFunc`）：
+     *  1. `GET /cdjy/cdjy_cxKxcdlb.html?gnmkdm=N2155&layout=default` —— 取会话上下文，
+     *     页面里的 `#dm_cx`（学年学期）、`#xqh_id`（校区）是查询的必填前提。
+     *  2. `POST /cdjy/cdjy_cxKxcdlb.html?doType=query` —— jqGrid 数据源，返回
+     *     `{"items":[{cdmc,cdbh,cdjc,lch,zws,cdlbmc,...}],"totalResult":N}`。
+     *
+     * [campusId] 为 null 时不传校区条件（`xqh_id` 留空），服务端返回**全校**汇总。
+     * 这一点很重要：教务页面默认只选中「理工学院」，照抄页面值只能查到该校区的
+     * 76 间，而全校是 591 间（实测各校区之和与全校一致）。
+     *
+     * 旧实现打的是 `kbcx/xskbcx_cxKxJscx*`，该模块对本校账号固定返回 910（未开放），
+     * 所以永远查不到数据。
+     */
+    suspend fun fetchFreeClassroomsWithQuery(
+        jc: Int = 1,
+        week: Int? = null,
+        weekday: Int? = null,
+        campusId: String? = null
+    ): FreeClassroomResult {
         val base = activeBase
-        val today = LocalDate.now()
-        val indexUrl = "$base/kbcx/xskbcx_cxKxJscxIndex.html?gnmkdm=N253508"
+        val indexUrl = "$base/cdjy/cdjy_cxKxcdlb.html?gnmkdm=N2155&layout=default"
         val indexHtml = get(indexUrl, requireSession = true)
-        val selectedTerm = indexHtml.takeIf { it.isNotBlank() }?.let(parser::parseSelectedTerm)
+        if (indexHtml.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
+
+        val selectedTerm = parser.parseFreeClassroomTerm(indexHtml)
+        val campuses = parser.parseFreeClassroomCampuses(indexHtml)
+        // 未指定校区 → 传空串，服务端按全校汇总
+        val effectiveCampusId = campusId ?: ""
         val query = buildFreeClassroomQuery(
-            date = today,
+            date = LocalDate.now(),
             section = jc,
+            week = week,
+            weekday = weekday,
+            campusId = effectiveCampusId,
             term = selectedTerm,
             termSource = if (selectedTerm == null) "未读到教务当前选项，按日期推算" else "教务页面当前选项"
         )
         val form = FormBody.Builder().apply {
             buildFreeClassroomForm(query).forEach { (name, value) -> add(name, value) }
         }.build()
-        val html = post("$base/kbcx/xskbcx_cxKxJscxKb.html?gnmkdm=N253508", form,
+        val payload = post(
+            "$base/cdjy/cdjy_cxKxcdlb.html?doType=query",
+            form,
             referer = indexUrl,
-            requireSession = true)
-        if (html.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
-        return FreeClassroomResult(parser.parseFreeClassrooms(html), query)
+            requireSession = true
+        )
+        if (payload.contains("login_slogin")) throw SessionExpiredException(SessionKind.JW, activeHost)
+        val items = parser.parseFreeRooms(payload)
+        return FreeClassroomResult(
+            rooms = items.map { it.name }.distinct(),
+            items = items,
+            query = query,
+            truncated = items.size >= FREE_CLASSROOM_PAGE_SIZE,
+            campuses = campuses
+        )
     }
 
     // ================= 学期 =================

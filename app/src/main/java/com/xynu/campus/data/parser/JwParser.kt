@@ -1,6 +1,8 @@
 package com.xynu.campus.data.parser
 
+import com.xynu.campus.data.model.CampusOption
 import com.xynu.campus.data.model.Course
+import com.xynu.campus.data.model.FreeRoom
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
 import org.json.JSONArray
@@ -266,43 +268,132 @@ object JwParser {
     }
 
     /**
-     * 解析空教室查询结果。
-     * 正方 V9 接口返回 JSON: {"items":[{cdmc, jxlmc, ...}]} 或 {"cdList":[...]}；
-     * 老接口可能返回 HTML 表格。返回教室名称列表（去重）。
+     * 解析空闲场地查询结果。
+     *
+     * 实测真实响应（`cdjy/cdjy_cxKxcdlb.html?doType=query`）：
+     * ```json
+     * {"currentPage":1,"totalResult":"90","items":[
+     *   {"cd_id":"01BF…","cdbh":"LZ2101","cdmc":"综教2101","cdjc":"综合教学楼2",
+     *    "jxlmc":"综合教学楼2","lch":"1","lh":"102","zws":"215","kszws1":"115",
+     *    "cdlbmc":"智慧教室","xqmc":"理工学院","sfkjy":"是","sfkpk":"是"}]}
+     * ```
+     * 兼容旧版 `{"cdList":[...]}` / `{"list":[...]}` 以及 HTML 表格兜底。
      */
-    fun parseFreeClassrooms(payload: String): List<String> {
+    fun parseFreeRooms(payload: String): List<FreeRoom> {
         val trimmed = payload.trim()
-        val out = mutableListOf<String>()
-        // JSON 分支
+        if (trimmed.isEmpty()) return emptyList()
         if (trimmed.startsWith("{")) {
-            try {
+            val arr = runCatching {
                 val o = JSONObject(trimmed)
-                val arr = o.optJSONArray("items") ?: o.optJSONArray("cdList") ?: o.optJSONArray("list")
-                if (arr != null) {
-                    for (i in 0 until arr.length()) {
-                        val it = arr.optJSONObject(i) ?: continue
-                        val name = it.optString("cdmc").ifBlank { it.optString("jxlmc") }
-                        if (name.isNotBlank()) out += name
-                    }
-                    return out.distinct()
+                o.optJSONArray("items") ?: o.optJSONArray("cdList") ?: o.optJSONArray("list")
+            }.getOrNull()
+            if (arr != null) {
+                val out = mutableListOf<FreeRoom>()
+                for (i in 0 until arr.length()) {
+                    val it = arr.optJSONObject(i) ?: continue
+                    val name = it.optString("cdmc").trim()
+                        .ifBlank { it.optString("jxlmc").trim() }
+                    if (name.isBlank()) continue
+                    out += FreeRoom(
+                        name = name,
+                        code = it.optString("cdbh").trim(),
+                        building = it.optString("cdjc").trim()
+                            .ifBlank { it.optString("jxlmc").trim() },
+                        floor = it.optString("lch").trim(),
+                        category = it.optString("cdlbmc").trim(),
+                        seats = it.optString("zws").trim().toIntOrNull() ?: 0,
+                        availableSeats = it.optString("kszws1").trim().toIntOrNull() ?: 0,
+                        campus = it.optString("xqmc").trim(),
+                        available = it.optString("sfkjy").trim() != "否"
+                    )
                 }
-            } catch (_: Exception) { }
+                return out
+            }
         }
-        // HTML 分支（表格 / 列表）
-        try {
+        // HTML 兜底：老接口以表格返回，只取首列作为场地名
+        val out = mutableListOf<FreeRoom>()
+        runCatching {
             val doc = Jsoup.parse(payload)
             doc.select("tr").forEach { tr ->
                 val tds = tr.select("td")
-                val name = tds.firstOrNull()?.text()?.trim() ?: return@forEach
-                if (name.isNotEmpty() && name.length < 30 && !name.contains("教室名称")) out += name
+                val name = tds.firstOrNull()?.text()?.trim().orEmpty()
+                if (name.isNotEmpty() && name.length < 30 && !name.contains("教室名称")) {
+                    out += FreeRoom(
+                        name = name,
+                        code = "",
+                        building = tds.getOrNull(1)?.text()?.trim().orEmpty(),
+                        floor = "",
+                        category = "",
+                        seats = 0,
+                        availableSeats = 0,
+                        campus = "",
+                        available = true
+                    )
+                }
             }
-            if (out.isNotEmpty()) return out.distinct()
-            // 兜底：直接取 <td> 文本
-            doc.select("td").forEach { td ->
-                val t = td.text().trim()
-                if (t.isNotEmpty() && t.length < 30) out += t
+            if (out.isEmpty()) {
+                doc.select("td").forEach { td ->
+                    val t = td.text().trim()
+                    if (t.isNotEmpty() && t.length < 30) {
+                        out += FreeRoom(t, "", "", "", "", 0, 0, "", true)
+                    }
+                }
             }
-        } catch (_: Exception) { }
-        return out.distinct()
+        }
+        return out.distinctBy { it.name }
+    }
+
+    /** 兼容旧调用：只取场地名称。 */
+    fun parseFreeClassrooms(payload: String): List<String> =
+        parseFreeRooms(payload).map { it.name }.distinct()
+
+    /**
+     * 空闲场地页面上的学年学期下拉框是 `select#dm_cx`，选项值形如 `2026-3`
+     * （学年-学期），与成绩页的 `#xnm` / `#xqm` 两个下拉不同，需要单独解析。
+     */
+    fun parseFreeClassroomTerm(html: String): TermOption? {
+        val doc = Jsoup.parse(html)
+        val raw = doc.selectFirst("select#dm_cx option[selected]")?.attr("value").orEmpty()
+        val parts = raw.split("-")
+        if (parts.size != 2) return null
+        val year = parts[0].trim()
+        val term = parts[1].trim()
+        if (year.toIntOrNull() == null || term.toIntOrNull() == null) return null
+        val label = "$year-${year.toInt() + 1} 学年第${if (term == "3") 1 else 2}学期"
+        return TermOption(year, term, label)
+    }
+
+    /**
+     * 空闲场地页面的校区 ID。查询必须带上它，否则服务端按全校汇总
+     * （实测：带上=90 间，留空=632 间）。
+     */
+    fun parseFreeClassroomCampusId(html: String): String {
+        val doc = Jsoup.parse(html)
+        val selected = doc.selectFirst("select#xqh_id option[selected]")?.attr("value")
+        if (!selected.isNullOrBlank()) return selected
+        val hidden = doc.selectFirst("input#xqh_id")?.attr("value")
+        if (!hidden.isNullOrBlank()) return hidden
+        return doc.selectFirst("select#xqh_id option")?.attr("value").orEmpty()
+    }
+
+    /**
+     * 空闲场地页面「校区」下拉框的全部选项。
+     *
+     * 页面默认只选中「理工学院」，直接拿 `parseFreeClassroomCampusId` 去查会漏掉
+     * 其它校区（理工 76 间 vs 全校 591 间）。这里把选项全解析出来，供 UI 提供
+     * 「全校 / 指定校区」的切换。
+     *
+     * 返回的列表保留 `value` 为空串的「全部」选项（若页面提供）。
+     */
+    fun parseFreeClassroomCampuses(html: String): List<CampusOption> {
+        val doc = Jsoup.parse(html)
+        return doc.select("select#xqh_id option")
+            .mapNotNull { option ->
+                val value = option.attr("value").trim()
+                val label = option.text().trim()
+                if (label.isBlank()) null
+                else CampusOption(id = value, name = label, selected = option.hasAttr("selected"))
+            }
+            .distinctBy { it.id }
     }
 }

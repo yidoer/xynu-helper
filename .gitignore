@@ -25,3 +25,6 @@ keystore.properties
 
 # 构建日志
 build-log*.txt
+
+# 本地联调探针脚本与抓包产物（含 Cookie/截图，不入库）
+tools/

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xynu.campus.ui.common.AppTopBar
 import com.xynu.campus.ui.jw.JwViewModel
+import com.xynu.campus.ui.jw.TermStartPickerDialog
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,7 +48,7 @@ fun SettingsScreen(
     }
 
     if (showTermStartDialog && jwVm != null) {
-        TermStartDialog(
+        TermStartPickerDialog(
             currentMillis = state?.termStartMillis,
             onConfirm = { millis ->
                 jwVm.setTermStart(millis)
@@ -173,81 +174,3 @@ private fun AboutDialog(onDismiss: () -> Unit) {
     )
 }
 
-@Composable
-private fun TermStartDialog(
-    currentMillis: Long?,
-    onConfirm: (Long) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val cal = Calendar.getInstance()
-    var year by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = Calendar.getInstance().apply { timeInMillis = it }
-                c.get(Calendar.YEAR)
-            } ?: cal.get(Calendar.YEAR)
-        )
-    }
-    var month by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = Calendar.getInstance().apply { timeInMillis = it }
-                c.get(Calendar.MONTH) + 1
-            } ?: 9
-        )
-    }
-    var day by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = Calendar.getInstance().apply { timeInMillis = it }
-                c.get(Calendar.DAY_OF_MONTH)
-            } ?: 1
-        )
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("设置开学日期") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    "选择本学期的开学日期（第 1 周第 1 天），课表将自动定位到当前周并显示日期。",
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = year.toString(),
-                        onValueChange = { year = it.toIntOrNull() ?: year },
-                        label = { Text("年") },
-                        modifier = Modifier.weight(1.2f)
-                    )
-                    OutlinedTextField(
-                        value = month.toString(),
-                        onValueChange = { month = (it.toIntOrNull() ?: month).coerceIn(1, 12) },
-                        label = { Text("月") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = day.toString(),
-                        onValueChange = { day = (it.toIntOrNull() ?: day).coerceIn(1, 31) },
-                        label = { Text("日") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val c = Calendar.getInstance().apply {
-                    set(year, month - 1, day, 0, 0, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                onConfirm(c.timeInMillis)
-            }) { Text("保存") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        }
-    )
-}

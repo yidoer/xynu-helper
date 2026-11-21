@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -34,6 +35,7 @@ import com.xynu.campus.ui.common.EmptyHint
 import com.xynu.campus.ui.common.ErrorHint
 import com.xynu.campus.ui.common.LoadingBox
 import com.xynu.campus.ui.theme.XynuRed
+import java.util.Calendar
 
 private val SectionColors = listOf(
     Color(0xFFB3261E), Color(0xFF2A6BB0), Color(0xFF2E7D32),
@@ -69,6 +71,7 @@ fun ScheduleScreen(
     var scale by remember { mutableFloatStateOf(state.scheduleScale) }
     var detailCourse by remember { mutableStateOf<Course?>(null) }
     var showTermStartDialog by remember { mutableStateOf(false) }
+    var showDateJump by remember { mutableStateOf(false) }
 
     // 把 UI 状态变化同步到 ViewModel（保持页面状态）
     fun persistUi(week: Int? = manualWeek, summer: Boolean = isSummer, s: Float = scale) {
@@ -98,9 +101,33 @@ fun ScheduleScreen(
         )
     }
 
+    // 按日期跳转：选某一天，自动落到那一周。入口在周次条的「第 N 周」胶囊上。
+    if (showDateJump) {
+        val targetCal = TermCalendar.dateOf(state.termStartMillis, currentWeek, 1)
+            ?: TermCalendar.today()
+        DateJumpDialog(
+            initialMillis = targetCal.timeInMillis,
+            requireTermStart = state.termStartMillis == null,
+            title = "选择日期，跳到对应周次",
+            onPick = { millis ->
+                val w = TermCalendar.weekOfTerm(state.termStartMillis, millis)
+                if (w != null) {
+                    manualWeek = w
+                    persistUi(week = w)
+                    showDateJump = false
+                } else {
+                    // 开学日期未设置时无法换算周次，直接引导去设置
+                    showDateJump = false
+                    showTermStartDialog = true
+                }
+            },
+            onDismiss = { showDateJump = false }
+        )
+    }
+
     // 开学日期设置弹窗
     if (showTermStartDialog) {
-        TermStartDialog(
+        TermStartPickerDialog(
             currentMillis = state.termStartMillis,
             onConfirm = { millis ->
                 vm.setTermStart(millis)
@@ -176,6 +203,7 @@ fun ScheduleScreen(
                 },
                 onTermSelect = { vm.selectScheduleTerm(it) },
                 onCourseClick = { detailCourse = it },
+                onDateJumpClick = { showDateJump = true },
                 modifier = Modifier.padding(padding)
             )
         }
@@ -198,6 +226,7 @@ private fun ScheduleGrid(
     onSeasonChange: (Boolean) -> Unit,
     onTermSelect: (com.xynu.campus.data.model.TermOption) -> Unit,
     onCourseClick: (Course) -> Unit,
+    onDateJumpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val totalSections = 12
@@ -259,12 +288,29 @@ private fun ScheduleGrid(
                 Spacer(Modifier.height(6.dp))
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "第 ${currentWeek} 周",
-                    fontSize = fs(15),
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1C1C1E)
-                )
+                // 「第 N 周」本身就是日历入口：点它选日期，自动定位到对应周
+                Surface(
+                    onClick = onDateJumpClick,
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.Transparent
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "第 ${currentWeek} 周",
+                            fontSize = fs(15),
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1C1C1E)
+                        )
+                        Spacer(Modifier.width(3.dp))
+                        Icon(
+                            Icons.Filled.CalendarMonth, "按日期跳转",
+                            tint = Color(0xFF8E8E93), modifier = Modifier.size(14.dp)
+                        )
+                    }
+                }
                 if (isViewingCurrentWeek) {
                     Spacer(Modifier.width(6.dp))
                     Box(
@@ -611,83 +657,4 @@ private fun DetailRow(label: String, value: String) {
             modifier = Modifier.weight(1f)
         )
     }
-}
-
-/** 开学日期设置对话框 */
-@Composable
-private fun TermStartDialog(
-    currentMillis: Long?,
-    onConfirm: (Long) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var year by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = java.util.Calendar.getInstance().apply { timeInMillis = it }
-                c.get(java.util.Calendar.YEAR)
-            } ?: java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
-        )
-    }
-    var month by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = java.util.Calendar.getInstance().apply { timeInMillis = it }
-                c.get(java.util.Calendar.MONTH) + 1
-            } ?: 9
-        )
-    }
-    var day by remember {
-        mutableStateOf(
-            currentMillis?.let {
-                val c = java.util.Calendar.getInstance().apply { timeInMillis = it }
-                c.get(java.util.Calendar.DAY_OF_MONTH)
-            } ?: 1
-        )
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("设置开学日期") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    "选择本学期的开学日期（第 1 周第 1 天），课表将自动定位到当前周。",
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = year.toString(),
-                        onValueChange = { year = it.toIntOrNull() ?: year },
-                        label = { Text("年") },
-                        modifier = Modifier.weight(1.2f)
-                    )
-                    OutlinedTextField(
-                        value = month.toString(),
-                        onValueChange = { month = (it.toIntOrNull() ?: month).coerceIn(1, 12) },
-                        label = { Text("月") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    OutlinedTextField(
-                        value = day.toString(),
-                        onValueChange = { day = (it.toIntOrNull() ?: day).coerceIn(1, 31) },
-                        label = { Text("日") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                val c = java.util.Calendar.getInstance().apply {
-                    set(year, month - 1, day, 0, 0, 0)
-                    set(java.util.Calendar.MILLISECOND, 0)
-                }
-                onConfirm(c.timeInMillis)
-            }) { Text("保存") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
-        }
-    )
 }

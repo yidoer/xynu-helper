@@ -3,7 +3,9 @@ package com.xynu.campus.ui.jw
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.xynu.campus.data.model.CampusOption
 import com.xynu.campus.data.model.Course
+import com.xynu.campus.data.model.FreeRoom
 import com.xynu.campus.data.model.JwLoginResult
 import com.xynu.campus.data.model.ScoreItem
 import com.xynu.campus.data.model.TermOption
@@ -17,6 +19,7 @@ import com.xynu.campus.data.net.freeClassroomErrorMessage
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
 import java.time.LocalDate
+import java.util.Calendar
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -56,9 +59,21 @@ data class JwUiState(
     val sessionExpired: Boolean = false,
     // 空教室
     val loadingRooms: Boolean = false,
-    val rooms: List<String> = emptyList(),
+    val rooms: List<FreeRoom> = emptyList(),
     val roomsError: String? = null,
     val roomsQuery: String = "",
+    val roomsWeek: Int = 1,
+    val roomsWeekday: Int = 1,
+    val roomsSection: Int = 1,
+    /** 用户选中的查询日期（yyyy-MM-dd）；周次与星期都由它推导，不再单独手选 */
+    val roomsDate: String = "",
+    /** 当前校区筛选；空串 = 全校（教务页面默认只给一个校区，会漏查） */
+    val roomsCampusId: String = "",
+    /** 教务页面提供的校区选项（用于切换筛选） */
+    val roomsCampuses: List<CampusOption> = emptyList(),
+    val roomsTruncated: Boolean = false,
+    /** 首次进入空教室页面时，是否已把日期对齐到「今天」 */
+    val roomsAlignedToToday: Boolean = false,
 )
 
 /**
@@ -102,6 +117,10 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             scoreError = null,
             roomsError = null,
             roomsQuery = "",
+            roomsWeek = 1,
+            roomsWeekday = 1,
+            roomsSection = 1,
+            roomsTruncated = false,
             loginMessage = "教务系统登录已过期，请重新登录"
         )
     }
@@ -366,25 +385,81 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** 空教室查询；新请求会取消并取代旧请求。 */
-    fun loadFreeRooms(jc: Int = 1) {
+    /**
+     * 空教室查询：用户只选「哪一天 + 第几节 + 哪个校区」，周次和星期由日期自动推算。
+     *
+     * 之所以不让用户单独选周次和星期：教务接口要的是 `zcd`（周次位掩码）+
+     * `xqj`（星期），这两个值必须互相自洽，手选很容易出现「第 10 周的周二」
+     * 这种和真实日历对不上的组合。让用户点日历选日期，再由 App 换算，
+     * 既不会选错，也不需要在两个下拉框之间来回对照。
+     *
+     * 校区默认「全校」（[campusId] 为空串）：教务页面 `select#xqh_id` 默认只选中
+     * 「理工学院」，照抄该值会漏掉校本部、淮河等校区（76 间 vs 全校 591 间）。
+     */
+    fun loadFreeRooms(
+        section: Int? = null,
+        dateMillis: Long? = null,
+        campusId: String? = null
+    ) {
         freeRoomsJob?.cancel()
         val requestId = freeRoomsRequests.next()
-        val pendingQuery = buildFreeClassroomQuery(LocalDate.now(), jc, term = null, termSource = "正在读取教务当前选项")
+        val snapshot = _state.value
+        val targetSection = (section ?: snapshot.roomsSection).coerceIn(1, 12)
+        val targetCampusId = campusId ?: snapshot.roomsCampusId
+
+        // 目标日期：显式传入 > 沿用上次选择 > 今天
+        val targetDateMillis = dateMillis
+            ?: snapshot.roomsDate.toDateMillisOrNull()
+            ?: System.currentTimeMillis()
+        val targetDate = Calendar.getInstance().apply { timeInMillis = targetDateMillis }
+
+        // 周次由开学日期换算；开学日期未设置时无从换算，退化为第 1 周
+        val week = TermCalendar.weekOfTerm(snapshot.termStartMillis, targetDateMillis) ?: 1
+        val weekday = TermCalendar.dayOfWeekOf(targetDateMillis)
+        val dateText = TermCalendar.isoDate(targetDate)
+
+        val pendingQuery = buildFreeClassroomQuery(
+            date = LocalDate.of(
+                targetDate.get(Calendar.YEAR),
+                targetDate.get(Calendar.MONTH) + 1,
+                targetDate.get(Calendar.DAY_OF_MONTH)
+            ),
+            section = targetSection,
+            week = week,
+            weekday = weekday,
+            campusId = targetCampusId,
+            term = null,
+            termSource = "正在读取教务当前选项"
+        )
         freeRoomsJob = viewModelScope.launch {
             _state.value = _state.value.copy(
                 loadingRooms = true,
                 roomsError = null,
+                roomsSection = targetSection,
+                roomsWeek = week,
+                roomsWeekday = weekday,
+                roomsDate = dateText,
+                roomsCampusId = targetCampusId,
+                roomsAlignedToToday = true,
                 roomsQuery = pendingQuery.display
             )
             try {
-                val result = withContext(Dispatchers.IO) { api.fetchFreeClassroomsWithQuery(jc) }
+                val result = withContext(Dispatchers.IO) {
+                    api.fetchFreeClassroomsWithQuery(
+                        jc = targetSection,
+                        week = week,
+                        weekday = weekday,
+                        campusId = targetCampusId
+                    )
+                }
                 if (!freeRoomsRequests.isCurrent(requestId)) return@launch
                 _state.value = _state.value.copy(
                     loadingRooms = false,
-                    rooms = result.rooms,
+                    rooms = result.items,
                     roomsQuery = result.query.display,
-                    roomsError = null
+                    roomsError = null,
+                    roomsCampuses = result.campuses,
+                    roomsTruncated = result.truncated
                 )
             } catch (e: SessionExpiredException) {
                 if (freeRoomsRequests.isCurrent(requestId)) handleSessionExpired(e)
