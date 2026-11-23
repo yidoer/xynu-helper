@@ -25,9 +25,13 @@ import com.xynu.campus.data.model.NewsItem
 import com.xynu.campus.ui.common.EmptyHint
 import com.xynu.campus.ui.common.FeatureTile
 import com.xynu.campus.ui.common.SectionCard
+import com.xynu.campus.ui.common.ignoreOrRethrowCancellation
 import com.xynu.campus.ui.theme.XynuBlue
 import com.xynu.campus.ui.theme.XynuRed
 import com.xynu.campus.ui.theme.XynuGold
+
+/** 系统浏览器 / 应用商店拉起失败时的日志 tag（不影响用户可见行为）。 */
+private const val TAG = "HomeScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +45,12 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenJwLogin: () -> Unit,
     onOpenLibLogin: () -> Unit,
+    /** 我的借阅（原「图书馆助手」：F1 引导 / F3 借阅查询）。 */
+    onOpenLibraryAssistant: () -> Unit = {},
+    /** 座位预约 / 选座助手（F4 两档页）。 */
+    onOpenLibrarySeat: () -> Unit = {},
+    /** 应用内馆藏检索（免登录，校内外网络都可用）。 */
+    onOpenLibraryCatalog: () -> Unit = {},
     onOpenWeb: (String, String?) -> Unit = { _, _ -> },
     vm: HomeViewModel = viewModel()
 ) {
@@ -136,19 +146,29 @@ fun HomeScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         FeatureTile(Icons.Filled.CalendarMonth, "我的课表", tint = XynuRed, onClick = onOpenSchedule, modifier = Modifier.weight(1f))
                         FeatureTile(Icons.Filled.Scoreboard, "成绩查询", tint = XynuBlue, onClick = onOpenScore, modifier = Modifier.weight(1f))
-                        FeatureTile(Icons.Filled.Search, "馆藏检索", tint = XynuGold, onClick = onOpenBookSearch, modifier = Modifier.weight(1f))
+                        // 我的借阅：走 libopac（校内外都能连），能看应还日期 + 续借次数。
+                        // 原来这里还有一个「图书馆助手」，页内标题也是「我的借阅」，
+                        // 两个入口指向同一个页面 —— 现在合并成一个，名字和页内标题一致。
+                        FeatureTile(Icons.Filled.Book, "我的借阅", tint = XynuGold, onClick = onOpenLibraryAssistant, modifier = Modifier.weight(1f))
                         FeatureTile(Icons.Filled.MeetingRoom, "空教室", tint = Color(0xFF2E7D32), onClick = onOpenFreeClassroom, modifier = Modifier.weight(1f))
                     }
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         FeatureTile(Icons.Filled.School, "教务登录", tint = XynuRed, onClick = onOpenJwLogin, modifier = Modifier.weight(1f))
-                        // 我的借阅：原生页（读者信息 + 当前借阅 + 借阅历史 + 续借）
-                        FeatureTile(Icons.Filled.Book, "我的借阅", tint = XynuGold, onClick = onOpenMyBorrow, modifier = Modifier.weight(1f))
                         // 收藏书架：本地收藏的图书
                         FeatureTile(Icons.Filled.Favorite, "收藏书架", tint = XynuRed, onClick = onOpenFavorites, modifier = Modifier.weight(1f))
-                        // 座位预约优先进入超星微信大厅，由真实页面处理座位入口和 OAuth。
+                        // 座位预约：直接进应用内选座页。
+                        // 原来这里开的是超星微信大厅 WebView，只显示一张"请在微信中打开"的引导页，
+                        // 用户原话「就是个摆设」。现在换成真实的选座页：基础档有本地开馆提醒
+                        // + 跳微信的真实深链，配了 Cookie 就能直接看座位图、预约。
+                        // 它同时也是原来的「选座助手」，所以不再另设重复格子。
                         FeatureTile(Icons.Filled.EventSeat, "座位预约", tint = Color(0xFF2E7D32),
-                            onClick = { onOpenWeb(SEAT_RESERVATION_HALL_URL, "座位预约") }, modifier = Modifier.weight(1f))
+                            onClick = onOpenLibrarySeat, modifier = Modifier.weight(1f))
+                        // 馆藏检索：走 libopac（内外网都通），能看「在馆几本 / 在哪个书库」。
+                        // 原位置是「馆藏查询」——两者功能重复，只留一个入口，
+                        // 名字沿用主区已有的「馆藏检索」，指向应用内检索页（免登录）。
+                        FeatureTile(Icons.Filled.MenuBook, "馆藏检索",
+                            tint = Color(0xFF1565C0), onClick = onOpenLibraryCatalog, modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -238,15 +258,18 @@ private fun NewsRow(news: NewsItem, onClick: () -> Unit) {
 }
 
 /** 用系统浏览器打开官方链接（已改为应用内 WebView，此函数保留供未来扩展） */
-internal fun openInBrowser(context: android.content.Context, url: String) {
-    try {
+internal fun openInBrowser(context: android.content.Context, url: String) {    try {
         val intent = android.content.Intent(
             android.content.Intent.ACTION_VIEW,
             android.net.Uri.parse(url)
         )
         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
-    } catch (_: Exception) { }
+    } catch (e: Exception) {
+        // 设备上没有能处理 ACTION_VIEW 的浏览器 / 系统限制后台启动 Activity。
+        // 用户看到的现象是"点了没反应"，记一条日志至少能定位。
+        e.ignoreOrRethrowCancellation(TAG, "用系统浏览器打开链接", rethrowCancellation = false)
+    }
 }
 
 /**
@@ -321,7 +344,15 @@ private fun CardEntryDialog(
                             intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                             context.startActivity(intent)
                             opened = true
-                        } catch (_: Exception) { }
+                        } catch (e: Exception) {
+                            // 没有应用商店（模拟器/部分 ROM）→ 走下面的官网兜底。
+                            // 这是预期内的降级路径，用 debug 级别记录，不当异常。
+                            e.ignoreOrRethrowCancellation(
+                                TAG,
+                                "拉起应用商店",
+                                rethrowCancellation = false,
+                            )
+                        }
                         if (!opened) {
                             try {
                                 val intent = android.content.Intent(
@@ -330,7 +361,14 @@ private fun CardEntryDialog(
                                 )
                                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
-                            } catch (_: Exception) { }
+                            } catch (e: Exception) {
+                                // 兜底也失败：设备上没有任何浏览器。用户点这一下就是"没反应"。
+                                e.ignoreOrRethrowCancellation(
+                                    TAG,
+                                    "打开官网兜底链接",
+                                    rethrowCancellation = false,
+                                )
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth()

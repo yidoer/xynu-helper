@@ -18,6 +18,7 @@ import com.xynu.campus.data.net.buildFreeClassroomQuery
 import com.xynu.campus.data.net.freeClassroomErrorMessage
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
+import com.xynu.campus.ui.common.ignoreOrRethrowCancellation
 import java.time.LocalDate
 import java.util.Calendar
 import kotlinx.coroutines.CancellationException
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -121,7 +123,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     private fun handleSessionExpired(error: SessionExpiredException) {
         invalidateRequests()
         AppCookieJar.clear(error.host)
-        _state.value = _state.value.copy(
+        _state.update { cur -> cur.copy(
             loggedIn = false,
             sessionExpired = true,
             loadingSchedule = false,
@@ -140,11 +142,11 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             roomsSection = 1,
             roomsTruncated = false,
             loginMessage = "教务系统登录已过期，请重新登录"
-        )
+        ) }
     }
 
     fun consumeSessionExpired() {
-        _state.value = _state.value.copy(sessionExpired = false)
+        _state.update { cur -> cur.copy(sessionExpired = false) }
     }
 
     init {
@@ -158,11 +160,11 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 val currentStart = _state.value.termStartMillis ?: start
                 val week = PreferencesStore.currentWeek(currentStart)
                 val dow = PreferencesStore.todayDayOfWeek()
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     termStartMillis = currentStart,
                     currentWeek = week,
                     todayDayOfWeek = dow
-                )
+                ) }
                 // 每 60 秒用系统日历重算一次；App 在前台跨天/跨周时自动更新周次与今日高亮
                 delay(60_000L)
             }
@@ -174,7 +176,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             } catch (_: Exception) { null }
             if (saved != null) {
                 val t = TermOption(saved.first, saved.second, saved.third)
-                _state.value = _state.value.copy(scheduleTerm = t)
+                _state.update { cur -> cur.copy(scheduleTerm = t) }
             }
         }
         // 恢复空教室上次选中的校区（各区数据独立，没有「全校」可回落）
@@ -184,7 +186,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     PreferencesStore.roomsCampusOnce(getApplication())
                 }
                 if (!savedCampus.isNullOrBlank()) {
-                    _state.value = _state.value.copy(roomsCampusId = savedCampus)
+                    _state.update { cur -> cur.copy(roomsCampusId = savedCampus) }
                 }
             } catch (_: Exception) {
                 // 读不到就按「没有历史选择」处理，走默认校区
@@ -198,33 +200,33 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
 
     fun login(username: String, password: String, saveCredentials: Boolean) {
         if (username.isBlank() || password.isBlank()) {
-            _state.value = _state.value.copy(loginMessage = "请输入学号和密码")
+            _state.update { cur -> cur.copy(loginMessage = "请输入学号和密码") }
             return
         }
         viewModelScope.launch {
-            _state.value = _state.value.copy(
+            _state.update { cur -> cur.copy(
                 loggingIn = true,
                 loginMessage = "",
                 sessionExpired = false
-            )
+            ) }
             val result = try {
                 withContext(Dispatchers.IO) { api.login(username.trim(), password) }
             } catch (e: Exception) {
                 JwLoginResult(false, "登录失败：${e.message ?: "网络异常"}，请检查网络后重试")
             }
-            _state.value = _state.value.copy(
+            _state.update { cur -> cur.copy(
                 loggingIn = false,
                 loginMessage = result.message
-            )
+            ) }
             if (result.success) {
-                _state.value = _state.value.copy(loggedIn = true, loginMessage = "登录成功")
+                _state.update { cur -> cur.copy(loggedIn = true, loginMessage = "登录成功") }
                 if (saveCredentials) {
                     launch {
                         try {
                             withContext(Dispatchers.IO) {
                                 CredentialsStore.saveJw(getApplication(), username.trim(), password)
                             }
-                        } catch (_: Exception) { }
+                        } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "保存教务凭据") }
                     }
                 }
             }
@@ -240,18 +242,18 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (_: Exception) { null } ?: return@launch
             if (cred.username.isBlank()) return@launch
-            _state.value = _state.value.copy(loggingIn = true)
+            _state.update { cur -> cur.copy(loggingIn = true) }
             val result = try {
                 withContext(Dispatchers.IO) { api.login(cred.username, cred.password) }
             } catch (e: Exception) {
                 JwLoginResult(false, "自动登录失败：${e.message ?: "网络异常"}")
             }
             if (result.success) {
-                _state.value = _state.value.copy(loggingIn = false, loggedIn = true)
+                _state.update { cur -> cur.copy(loggingIn = false, loggedIn = true) }
                 loadSchedule()
             } else {
-                try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (_: Exception) { }
-                _state.value = _state.value.copy(loggingIn = false, loginMessage = result.message)
+                try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "清理教务凭据", rethrowCancellation = false) }
+                _state.update { cur -> cur.copy(loggingIn = false, loginMessage = result.message) }
             }
         }
     }
@@ -259,7 +261,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         invalidateRequests()
         viewModelScope.launch {
-            try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (_: Exception) { }
+            try { withContext(Dispatchers.IO) { CredentialsStore.clearJw(getApplication()) } } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "退出时清理教务凭据", rethrowCancellation = false) }
             api.hosts.forEach(AppCookieJar::clear)
             _state.value = JwUiState()
         }
@@ -269,39 +271,39 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
         val useTerm = term ?: _state.value.scheduleTerm
         val requestId = ++scheduleRequestId
         viewModelScope.launch {
-            _state.value = _state.value.copy(loadingSchedule = true, scheduleError = null)
+            _state.update { cur -> cur.copy(loadingSchedule = true, scheduleError = null) }
             try {
                 val list = withContext(Dispatchers.IO) {
                     if (useTerm != null) api.fetchSchedule(useTerm.xnm, useTerm.xqm)
                     else api.fetchSchedule()
                 }
                 if (requestId != scheduleRequestId) return@launch
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingSchedule = false,
                     schedule = list,
-                    scheduleTerm = useTerm ?: _state.value.scheduleTerm
-                )
+                    scheduleTerm = useTerm ?: cur.scheduleTerm
+                ) }
             } catch (e: SessionExpiredException) {
                 if (requestId == scheduleRequestId) handleSessionExpired(e)
             } catch (e: Exception) {
                 if (requestId != scheduleRequestId) return@launch
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingSchedule = false,
                     scheduleError = e.message ?: "加载课表失败"
-                )
+                ) }
             }
         }
     }
 
     /** 切换课表学期 */
     fun selectScheduleTerm(term: TermOption) {
-        _state.value = _state.value.copy(scheduleTerm = term)
+        _state.update { cur -> cur.copy(scheduleTerm = term) }
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.setSelectedTerm(getApplication(), term.xnm, term.xqm, term.label)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "保存课表学期") }
         }
         loadSchedule(term)
     }
@@ -313,20 +315,20 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val terms = withContext(Dispatchers.IO) { api.fetchTermOptions() }
                 if (requestId != scheduleTermsRequestId) return@launch
-                _state.value = _state.value.copy(scheduleTerms = terms)
+                _state.update { cur -> cur.copy(scheduleTerms = terms) }
             } catch (e: SessionExpiredException) {
                 if (requestId == scheduleTermsRequestId) handleSessionExpired(e)
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "加载课表学期列表") }
         }
     }
 
     /** 保存课表 UI 状态（用户切走/返回时保持） */
     fun saveScheduleUiState(week: Int?, isSummer: Boolean, scale: Float) {
-        _state.value = _state.value.copy(
+        _state.update { cur -> cur.copy(
             scheduleWeek = week,
             scheduleIsSummer = isSummer,
             scheduleScale = scale
-        )
+        ) }
     }
 
     /** 设置开学日期 */
@@ -336,12 +338,12 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.setTermStart(getApplication(), millis)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "保存开学日期") }
             val week = PreferencesStore.currentWeek(millis)
-            _state.value = _state.value.copy(
+            _state.update { cur -> cur.copy(
                 termStartMillis = millis,
                 currentWeek = week
-            )
+            ) }
         }
     }
 
@@ -364,7 +366,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                         "${java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) - 1}",
                         "3", "当前学期"
                     )
-                _state.value = _state.value.copy(terms = terms, selectedTerm = initial)
+                _state.update { cur -> cur.copy(terms = terms, selectedTerm = initial) }
                 loadScores(initial)
             } catch (e: SessionExpiredException) {
                 if (requestId == scoreTermsRequestId) handleSessionExpired(e)
@@ -378,7 +380,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 val first = savedTerm?.let { s -> terms.firstOrNull { it.xnm == s.xnm && it.xqm == s.xqm } }
                     ?: terms.firstOrNull()
-                _state.value = _state.value.copy(terms = terms, selectedTerm = first)
+                _state.update { cur -> cur.copy(terms = terms, selectedTerm = first) }
                 first?.let { loadScores(it) }
             }
         }
@@ -386,14 +388,14 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectTerm(term: TermOption) {
         scoreTermsRequestId++
-        _state.value = _state.value.copy(selectedTerm = term)
+        _state.update { cur -> cur.copy(selectedTerm = term) }
         // 持久化成绩学期选择，下次进入成绩页时恢复
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.setSelectedScoreTerm(getApplication(), term.xnm, term.xqm, term.label)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "保存成绩学期") }
         }
         loadScores(term)
     }
@@ -401,19 +403,19 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
     fun loadScores(term: TermOption) {
         val requestId = ++scoreRequestId
         viewModelScope.launch {
-            _state.value = _state.value.copy(loadingScores = true, scoreError = null)
+            _state.update { cur -> cur.copy(loadingScores = true, scoreError = null) }
             try {
                 val list = withContext(Dispatchers.IO) { api.fetchScores(term.xnm, term.xqm) }
                 if (requestId != scoreRequestId) return@launch
-                _state.value = _state.value.copy(loadingScores = false, scores = list)
+                _state.update { cur -> cur.copy(loadingScores = false, scores = list) }
             } catch (e: SessionExpiredException) {
                 if (requestId == scoreRequestId) handleSessionExpired(e)
             } catch (e: Exception) {
                 if (requestId != scoreRequestId) return@launch
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingScores = false,
                     scoreError = e.message ?: "加载成绩失败"
-                )
+                ) }
             }
         }
     }
@@ -439,7 +441,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.setRoomsCampus(getApplication(), campusId)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("JwViewModel", "保存空教室校区") }
         }
     }
 
@@ -495,7 +497,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 term = null,
                 termSource = "正在读取教务当前选项"
             )
-            _state.value = _state.value.copy(
+            _state.update { cur -> cur.copy(
                 loadingRooms = true,
                 roomsError = null,
                 roomsSection = targetSection,
@@ -505,7 +507,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 roomsCampusId = targetCampusId,
                 roomsAlignedToToday = true,
                 roomsQuery = pendingQuery.display
-            )
+            ) }
             try {
                 val result = withContext(Dispatchers.IO) {
                     api.fetchFreeClassroomsWithQuery(
@@ -523,16 +525,16 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 val resolvedCampus = resolveRoomsCampus(result.campuses, targetCampusId)
                 if (resolvedCampus != targetCampusId) {
                     if (!freeRoomsRequests.isCurrent(requestId)) return@launch
-                    _state.value = _state.value.copy(
+                    _state.update { cur -> cur.copy(
                         roomsCampuses = result.campuses,
                         roomsCampusId = resolvedCampus
-                    )
+                    ) }
                     persistRoomsCampus(resolvedCampus)
                     loadFreeRooms(campusId = resolvedCampus)
                     return@launch
                 }
 
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingRooms = false,
                     rooms = result.items,
                     roomsQuery = result.query.display,
@@ -540,7 +542,7 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                     roomsCampuses = result.campuses,
                     roomsCampusId = resolvedCampus,
                     roomsTruncated = result.truncated
-                )
+                ) }
                 // 用户手动切换校区时 resolvedCampus 就等于请求值，走不到上面的重查分支，
                 // 所以这里补一次写入——否则「记住上次选的校区」只对自动落默认值生效。
                 if (resolvedCampus.isNotBlank()) persistRoomsCampus(resolvedCampus)
@@ -550,10 +552,10 @@ class JwViewModel(application: Application) : AndroidViewModel(application) {
                 throw e
             } catch (e: Exception) {
                 if (!freeRoomsRequests.isCurrent(requestId)) return@launch
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingRooms = false,
                     roomsError = freeClassroomErrorMessage(e)
-                )
+                ) }
             }
         }
     }

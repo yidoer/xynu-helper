@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>openid 配置向导</title>
+<style>
+  :root {
+    --red: #B71C1C;
+    --bg: #F5F6FA;
+    --card: #FFFFFF;
+    --text: #1F1F1F;
+    --muted: #6B6B6B;
+    --ok: #2E7D32;
+    --warn: #E65100;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 12px 14px 96px;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6;
+  }
+  .step { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 12px;
+          box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .step h2 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .badge { display: inline-flex; align-items: center; justify-content: center;
+           width: 22px; height: 22px; border-radius: 50%; background: var(--red);
+           color: #fff; font-size: 12px; flex: 0 0 auto; }
+  .step p { margin: 6px 0; }
+  .muted { color: var(--muted); font-size: 12.5px; }
+  .illus { background: #FAFAFA; border: 1px dashed #D8D8D8; border-radius: 8px;
+            padding: 12px; margin: 8px 0; font-size: 13px; }
+  .path { display: inline-block; background: #FFF3E0; color: var(--warn);
+          padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+  .dots { font-weight: 700; letter-spacing: 1px; }
+  .row { display: flex; align-items: center; justify-content: space-between;
+         margin-top: 12px; gap: 10px; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 11px 18px;
+           background: var(--red); color: #fff; font-weight: 600; }
+  button.ghost { background: #EFEFEF; color: #444; font-weight: 500; }
+  button:disabled { opacity: .5; }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 14px 16px;
+         background: rgba(245,246,250,.96); backdrop-filter: blur(6px);
+         border-top: 1px solid #E4E4E4; display: flex; gap: 10px; }
+  .bar button { flex: 1; }
+  .msg { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; font-size: 13px;
+         display: none; }
+  .msg.err { display: block; background: #FFEBEE; color: #B71C1C; }
+  .msg.ok  { display: block; background: #E8F5E9; color: var(--ok); }
+  .msg.warn{ display: block; background: #FFF3E0; color: var(--warn); }
+</style>
+</head>
+<body>
+
+<div class="step">
+  <h2><span class="badge">1</span>打开微信，进入图书馆公众号</h2>
+  <div class="illus">
+    微信底部 <span class="path">通讯录</span> → <span class="path">公众号</span> →
+    找到「<b>信阳师范大学图书馆</b>」
+  </div>
+  <p class="muted">如果没关注过，先在微信搜索「信阳师范大学图书馆」并关注。</p>
+</div>
+
+<div class="step">
+  <h2><span class="badge">2</span>进入个人中心 → 借阅信息</h2>
+  <div class="illus">
+    公众号底部菜单 <span class="path">我的图书馆</span> →
+    <span class="path">个人中心</span> → <span class="path">借阅信息</span>
+  </div>
+  <p class="muted">这一步需要你已经在公众号里绑定过借阅证。若提示未绑定，请先在公众号里完成绑定。</p>
+</div>
+
+<div class="step">
+  <h2><span class="badge">3</span>复制这个页面的链接</h2>
+  <div class="illus">
+    点右上角 <span class="dots">···</span> → <span class="path">复制链接</span>
+  </div>
+  <p class="muted">复制完回到本页，点下面的按钮。</p>
+  <p class="muted">链接里含有你的 openid，它只保存在本机加密存储中，不会上传到任何服务器。</p>
+</div>
+
+<div id="msg" class="msg"></div>
+
+<div class="bar">
+  <button class="ghost" id="btnLater">稍后再说</button>
+  <button id="btnDone">我复制好了</button>
+</div>
+
+<script>
+(function () {
+  var msgEl = document.getElementById('msg');
+  var btnDone = document.getElementById('btnDone');
+
+  function showMsg(text, kind) {
+    msgEl.className = 'msg ' + (kind || 'err');
+    msgEl.textContent = text;
+  }
+
+  function bridge() {
+    return window.XynuLibrary || null;
+  }
+
+  function callBridge(method, arg) {
+    var b = bridge();
+    if (!b) { return null; }
+    try {
+      var raw = (arg === undefined) ? b[method]() : b[method](arg);
+      return typeof raw === 'string' ? JSON.parse(raw) : raw;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  btnDone.addEventListener('click', function () {
+    btnDone.disabled = true;
+    showMsg('正在读取剪贴板…', 'warn');
+
+    var res = callBridge('readClipboard');
+    btnDone.disabled = false;
+
+    if (!res) {
+      showMsg('无法与本机应用通信，请退回上一页重试。', 'err');
+      return;
+    }
+    if (!res.ok) {
+      showMsg(res.reason || '读取失败，请重新复制链接。', 'err');
+      return;
+    }
+
+    // 已提取到 openid，交给原生层加密保存
+    var saved = callBridge('saveIdentity', JSON.stringify({ type: 'openid', openid: res.extra.openid }));
+    if (saved && saved.ok) {
+      showMsg('配置成功：' + res.extra.masked + '。请按左上角返回，查看借阅信息。', 'ok');
+      btnDone.textContent = '已配置，可返回';
+    } else {
+      showMsg((saved && saved.reason) || '保存失败，请重试。', 'err');
+    }
+  });
+
+  document.getElementById('btnLater').addEventListener('click', function () {
+    // 桥只有四个方法，导航由原生返回键处理；这里只给一句提示
+    showMsg('可以先跳过。随时可以从首页「图书馆助手」重新进入本向导。', 'warn');
+  });
+})();
+</script>
+</body>
+</html>

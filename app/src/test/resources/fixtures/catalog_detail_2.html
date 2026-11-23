@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+
+
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no" />
+<meta http-equiv="pragma" content="no-cache"/>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0"/>
+<meta charset="utf-8">
+<title>文化主体性的中国逻辑</title>
+<link type="text/css" rel="stylesheet" href="/res/css/common.css" />
+<script type="text/javascript" src="/res/js/jquery-3.7.1.min.js"></script>
+<style type="text/css">
+.tableCon th{
+	width:80px;
+}
+</style>
+<script>
+$(function(){
+	function init(){
+		// 判断是否需要每条馆藏都显示预约按钮
+		var itemSize = $(".tableLib").length;
+		if(itemSize > 1 && $(".tableLib:eq(0) [name='bookingParam']").val() != $(".tableLib:eq(1) [name='bookingParam']").val()){
+		//	$(".tableCon table").find("tr:eq(0) td").prepend('<a class="lend fr" onclick="booking(this)" href="javascript:void(0)">预约</a>');
+		}
+		$("body").show();
+	}
+	$(".tableLib .titBox").click(function(){
+		$(this).siblings().slideToggle().parent().siblings().find(".tableCon").hide();
+		$(this).toggleClass("biao").parent().siblings().find(".titBox").removeClass("biao");
+	});
+	
+	init();
+});
+
+/**
+ * 委托
+ */
+function weituo(schoolid, barcode){
+	$('<a target="_blank"></a>').attr('href',"/sms/opac/user/weituo?schoolid=" + schoolid + "&barcode=" + barcode)[0].click();
+	//location.href = "/sms/opac/user/weituo?schoolid=" + schoolid + "&barcode=" + barcode;
+	/*$.ajax({
+		url:  "/sms/opac/user/weituo?schoolid=" + schoolid + "&barcode=" + barcode + "&sn=" + sn,
+		// data: {"schoolid":schoolid, "barcode":barcode},
+		type: "post",
+		//	dataType: "json",
+		success:function(data){
+			closePopup(400);
+			alert(data);
+		},
+		error:function(){
+			closePopup(400);
+			$(".renewMsg").text("委托异常，请联系管理员").css("color","red").parent().show();
+		},
+		complete:function(){
+
+		}
+	});*/
+}
+
+/**
+ * 预约
+ */
+ function booking(_this){
+	$(_this).parent().parent().parent().find("input[type='radio']").attr("checked",true);
+	$("form").submit();
+}
+</script>
+</head>
+<body style="display:none">
+<div class="resoult">
+
+<!--    
+  <div class="head clearfix">
+     <header><a href="" class="back fl"><img src="images/back.png" width="10" height="18" /></a><h1><span>检索结果</span></h1></header>
+  </div>
+  <div class="header"></div>
+ -->
+ <form action="/sms/opac/user/beforeBooking" method="get">
+  <input name="xc" value="3" type="hidden"/>
+  <input name="schoolid" value='968' type="hidden"/>
+  <div class="article">
+      <article>
+	      <!-- 图书介绍信息 -->
+	      
+			  
+			  
+		        <header>
+		           <div class="tit text_over_hidden">
+		              <h1>文化主体性的中国逻辑</h1>
+		              
+		           </div>
+		        </header>
+		        <div class="catalog">
+			        
+			        
+					
+					
+					
+					
+					
+					
+				
+				
+		            	
+		           	<!-- 其他自定义信息 -->
+		           	
+		           		<p>ISBN/价格：978-7-300-34231-3:CNY88.00</p>
+					
+		           		<p>作品语种：chi</p>
+					
+		           		<p>出版国别：CN 110000</p>
+					
+		           		<p>题名责任者项：文化主体性的中国逻辑/.韩庆祥著</p>
+					
+		           		<p>出版发行项：北京:,中国人民大学出版社:,2026.3</p>
+					
+		           		<p>载体形态项：207页:;+25cm</p>
+					
+		           		<p>丛编项：“认识中国·了解中国”书系</p>
+					
+		           		<p>一般附注：“十四五”时期国家重点出版物出版专项规划项目</p>
+					
+		           		<p>提要文摘：本书以破解“古今中西之争”为问题意识, 通过剖析“西方中心论”的哲学根基与核心要素, 揭示其内含的困境与局限, 并在此背景下, 重点论述了中国式现代化作为一种全新的文明形态, 如何为建构中华民族的文化主体性奠定坚实基础。</p>
+					
+		           		<p>题名主题：现代化建设 研究 中国 中华文化 研究</p>
+					
+		           		<p>中图分类：D61 K203</p>
+					
+		           		<p>个人名称等同：韩庆祥 著</p>
+					
+		           		<p>记录来源：CN TSG 20261022</p>
+					
+		        </div>
+	        
+		
+			
+		<!-- 馆藏信息 -->
+		
+			
+			
+				
+					<div class="tableLib">
+						<div class="titBox clearfix biao">
+							<!-- 点击展示按钮 -->
+							<a href="javascript:void(0);" class="fr"> <span/> </a>
+							<!-- 标题题名 -->
+							
+								
+								
+									<p>
+										  《文化主体性的中国逻辑》
+										 <em>
+											 
+											 	
+											 	
+											 
+										</em>
+									 </p>
+								
+							
+							
+						</div>
+						<!-- 其他信息 -->
+						<div class="tableCon" style="display:block;">
+							<table cellpadding="0" cellspacing="0">
+								
+								<tr>
+									<th>条码号</th>
+									<td>23368259
+										
+											
+										
+										
+									</td>
+								</tr>
+
+								
+								
+								<tr>
+									<th>索书号</th>
+									<td>D61/H097:3</td>
+								</tr>
+								
+								
+								<tr>
+									<th>藏馆</th>
+									<td>社科书库三</td>
+								</tr>
+								
+								
+								<tr>
+									<th>库室</th>
+									<td>1</td>
+								</tr>
+								
+								
+								
+								
+								
+								<tr>
+									<th>馆藏状态</th>
+									<td>在架</td>
+								</tr>
+								
+							 	<!-- 其他自定义信息 -->
+					           	
+					           		<tr>
+										<th>所属校区</th>
+										<td></td>
+									</tr>
+								
+								<!-- 预约参数 -->
+								<tr style="display:none">
+									<th></th>
+									<td>
+									<input name="bookingParam" value='' type="radio"  style="display:none"/>
+								
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+		    	
+			
+		
+		
+     </article>
+  </div>
+  <div class="footer"></div>
+  
+  <!-- 是否开启预约 -->
+   
+ </form>
+ <SCRIPT type="text/javascript">
+ function yj(){
+	var a = $('#prelendLibcode').val();
+	if(''==a){
+		alert('请选择一个分馆!');
+		return;
+	}
+	window.location.href='/sms/opac/user/bfyj?xc=3&bookingParam=&prelendLibcode='+a;
+ }
+ </SCRIPT>
+</div>
+</body>
+</html>

@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -31,19 +32,19 @@ class HomeViewModel : ViewModel() {
 
     fun refresh() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(loading = true, error = null)
+            _state.update { cur -> cur.copy(loading = true, error = null) }
             try {
                 val (jwc, lib) = withContext(Dispatchers.IO) {
                     val a = runCatching { api.fetchJwcNews() }.getOrDefault(emptyList())
                     val b = runCatching { api.fetchLibNews() }.getOrDefault(emptyList())
                     a to b
                 }
-                _state.value = _state.value.copy(loading = false, jwcNews = jwc, libNews = lib)
+                _state.update { cur -> cur.copy(loading = false, jwcNews = jwc, libNews = lib) }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loading = false,
                     error = e.message ?: "资讯加载失败"
-                )
+                ) }
             }
         }
     }

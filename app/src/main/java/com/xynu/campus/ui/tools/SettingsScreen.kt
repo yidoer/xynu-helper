@@ -27,7 +27,9 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    jwVm: JwViewModel? = null
+    jwVm: JwViewModel? = null,
+    /** 图书馆身份迁移（换手机时把 openid / 选座 Cookie 搬过去）。低频操作，放在设置里。 */
+    onOpenLibraryMigration: (() -> Unit)? = null,
 ) {
     var showTermStartDialog by remember { mutableStateOf(false) }
     var termStartText by remember { mutableStateOf("未设置") }
@@ -102,6 +104,13 @@ fun SettingsScreen(
             ) {
                 Column(Modifier.padding(4.dp)) {
                     var showAbout by remember { mutableStateOf(false) }
+                    // 图书馆身份迁移：换手机时的低频操作，主页放不下就收到这里。
+                    if (onOpenLibraryMigration != null) {
+                        SettingRow("图书馆身份迁移", subtitle = "换手机时把借阅身份和选座 Cookie 搬过去") {
+                            onOpenLibraryMigration()
+                        }
+                        HorizontalDivider(color = Color(0xFFF0F0F0), modifier = Modifier.padding(horizontal = 16.dp))
+                    }
                     SettingRow("关于本应用") { showAbout = true }
                     HorizontalDivider(color = Color(0xFFF0F0F0), modifier = Modifier.padding(horizontal = 16.dp))
                     SettingRow("数据来源说明") {

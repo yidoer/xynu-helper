@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+
+
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="-1" />
+<meta name="viewport" content="width=device-width, minimum-scale=0.3, initial-scale=1.0, maximum-scale=2.0, user-scalable=1" />
+<meta name="format-detection" content="telephone=no" />
+<title>借阅信息</title>
+<link type="text/css" rel="stylesheet" href="/res/css/common.css" />
+<script type="text/javascript" src="/res/js/jquery-3.7.1.min.js"></script>
+<script type="text/javascript" src="/res/js/popup.js"></script>
+<script type="text/javascript" >
+$(function(){
+	/**
+	 * 初始化
+	 */
+	function init(){
+		// 初始化样式
+		$(".tableCon table").find("tr:eq(0) th").attr("width","90");
+		var ifcanRenew = 'true';
+		if('968' == 18267){
+			ifcanRenew = 'true';
+		}
+		// 添加续借按钮
+		if(ifcanRenew != '' && ifcanRenew == 'true'){
+			if('968' == 18267){
+				$(".tableCon table").find("tr:eq(0) td").prepend("<a class=\"lend fr\" onclick=\"javascript:alert('续借成功！')\">续借</a>");
+			} else {
+				$(".tableCon table").find("tr:eq(0) td").prepend("<a class=\"lend fr\" onclick=\"renew(this)\">续借</a>");
+			}
+		}
+		$("body").show();
+	}
+
+	/**
+	 * 点击图书，展示和收起动画
+	 */
+	$(".tableLib .titBox").click(function(){
+		$(this).siblings().slideToggle().parent().siblings().find(".tableCon").hide();
+		$(this).toggleClass("biao").parent().siblings().find(".titBox").removeClass("biao");
+	});
+	
+	init();
+});
+
+	/**
+	 * 续借事件
+	 */
+	function renew(_this){
+		showPopup("续借中..",-1);
+		var $book = $(_this).parent().parent().parent().parent().parent();
+		var url = "/sms/opac/user/renewAjax.action";
+		var sn = $("#sn").val();
+		var xc = 3;
+		var renewParam = $book.find(".renewParam").text().trim();
+		$(".renewMsg,.dueDate,.renewCount,.renewDate").css("color","black");
+		$(".renewMsg").text("").parent().hide() ;
+		let token = $("input[name='token']").val()
+		$.ajax({
+			url:  url,
+			data: {"sn":sn, "xc":xc,"tokenStr":token, "renewParam":renewParam,"schoolid":'968'},
+			type: "post",
+			dataType: "json",
+			success:function(data){
+				closePopup(400);
+				var errorMsg = data.errorMsg;
+				var renewResultStr = data.renewResult;
+				if(errorMsg!=null && errorMsg.trim()!=""){
+					$book.find(".renewMsg").text(errorMsg).css("color","red").parent().show();
+				}else if(renewResultStr!=null && renewResultStr!="null" && renewResultStr.trim()!=""){
+					var renewResult = JSON.parse(renewResultStr);
+					var renewMsg   = renewResult.renewMsg;
+					var dueDate    = renewResult.dueDate;
+					var renewDate  = renewResult.renewDate;
+					var renewTimes = renewResult.renewTimes;
+					var renewState = renewResult.renewState;
+					if(renewMsg!=null && renewMsg.trim()!=""){
+						$book.find(".renewMsg").text(renewMsg).css("color","red").parent().show();
+					}else if(renewState=="true"){
+						$book.find(".renewMsg").text("续借成功！").css("color","red").parent().show();
+					}else{
+						$book.find(".renewMsg").text("续借结束，返回结果为空！").css("color","red").parent().show();
+					}
+					if(renewTimes!=null && renewTimes.trim()!=""){
+						var pre_renewTimes = $book.find(".renewCount").text();
+						if(renewTimes != pre_renewTimes){
+							$book.find(".renewCount").text(renewTimes).css("color","red").parent().show();
+						}
+					}
+					if(renewDate!=null && renewDate.trim()!=""){
+						$book.find(".renewDate").text(renewDate).css("color","red").parent().show();
+					}
+					if(dueDate!=null && dueDate.trim()!=""){
+						var pre_dueDate = $book.find(".dueDate").text();
+						if(dueDate != pre_dueDate){
+							$book.find(".dueDate").text(dueDate).css("color","red").parent().show();
+							$book.find(".renewMsg").text("续借成功").css("color","red").parent().show();
+							return;
+						}
+					}
+				}else{
+					$book.find(".renewMsg").text("未知结果，请联系管理员。").css("color","red").parent().show();
+				}
+			},
+			error:function(){
+				closePopup(400);
+				$(".renewMsg").text("续借异常，请联系管理员").css("color","red").parent().show();
+			},
+			complete:function(){
+				
+			}
+		});
+	};
+
+</script>
+</head>
+<body style="display: none;">
+<input style="display: none;" id="sn" value="SNREDACTED00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000">
+
+
+<div class="resoult">
+  <div class="content">
+        <header>
+           <div class="num">
+              <h1>目前借书1本
+				  
+			  </h1>
+           </div>
+        </header>
+  	<div class="article">
+      <article>
+      
+	      <div class="tableLib">
+	           <div class="titBox clearfix biao">
+				<input type="hidden" name="token" value="">
+	           	<a href="javascript:void(0);" class="fr"><span></span></a>
+	           	<p class="text_over_hidden">
+	           		《逻辑学导论:推理、论证与批判性思维》
+			        
+	           	</p>
+	           </div>
+	           <div class="tableCon" style="display:block;">
+	             <table cellpadding="0" cellspacing="0">
+	             	
+	             		<tr><th>条码号</th><td>23183438</td></tr>
+	             	
+	             	
+	             	<tr>
+	             		<th>题名</th>
+	             		<td>逻辑学导论:推理、论证与批判性思维</td>
+	             	</tr>
+	             	
+	             		<tr><th>借阅日期</th><td>2026/9/1 20:36:58</td></tr>
+	             	
+	             	
+	             		<tr><th>应还日期</th><td class="dueDate">2026/12/30 23:59:59</td></tr>
+	             	
+	             	
+	             	 
+	             	<!-- 其他自定义信息 -->
+	             	
+					
+					
+	             		<tr><th>续借次数</th><td class="renewCount">1</td></tr>
+	             	
+	             	
+	             	
+	             	<tr style="display:none"><th>续借结果</th><td class="renewMsg"></td></tr>
+	             	<tr style="display:none"><th>续借时间</th><td class="renewDate"></td></tr>
+	             	
+	             	<!-- 续借参数 -->
+					<tr style="display: none;" class="renewParam">
+	             		<td>{"barcode":"23183438"} </td>
+	             	</tr>
+
+	               </table>
+	            </div>
+	       </div>
+		
+     </article>
+  </div>
+  </div>
+</div>
+</body>
+</html>

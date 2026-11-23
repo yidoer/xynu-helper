@@ -1,6 +1,7 @@
 package com.xynu.campus.data.net
 
 import com.xynu.campus.data.crypto.JwRsaCrypto
+import com.xynu.campus.data.logSwallowed
 import com.xynu.campus.data.model.CampusOption
 import com.xynu.campus.data.model.Course
 import com.xynu.campus.data.model.FreeRoom
@@ -241,17 +242,7 @@ class JwApi(
         if (requireSession) builder.requireSession(SessionKind.JW)
         if (referer != null) builder.header("Referer", referer)
         if (ajax) builder.header("X-Requested-With", "XMLHttpRequest")
-        client.newCall(builder.build()).execute().use { resp ->
-            val body = resp.body?.string() ?: ""
-            if (!resp.isSuccessful) {
-                // 910 是教务服务器对空教室查询的会话/线路拒绝码，应映射到会话失效而不是服务器错误。
-                if (requireSession && isJwSessionExpiredStatus(resp.code)) {
-                    throw SessionExpiredException(SessionKind.JW, resp.request.url.host)
-                }
-                throw JwHttpException(resp.code, resp.request.url.toString(), body.take(4096))
-            }
-            return body
-        }
+        return execute(builder.build(), requireSession)
     }
 
     private fun post(
@@ -266,7 +257,16 @@ class JwApi(
             .header("X-Requested-With", "XMLHttpRequest")
             .post(form)
         if (requireSession) builder.requireSession(SessionKind.JW)
-        client.newCall(builder.build()).execute().use { resp ->
+        return execute(builder.build(), requireSession)
+    }
+
+    /**
+     * GET / POST 共用的执行与错误映射逻辑：
+     * 非 2xx 时，需要会话的请求遇到会话拒绝码映射为 [SessionExpiredException]，
+     * 其余抛 [JwHttpException]（body 截断到 4KB，避免异常里挂整页 HTML）。
+     */
+    private fun execute(request: Request, requireSession: Boolean): String {
+        client.newCall(request).execute().use { resp ->
             val body = resp.body?.string() ?: ""
             if (!resp.isSuccessful) {
                 // 910 是教务服务器对空教室查询的会话/线路拒绝码，应映射到会话失效而不是服务器错误。
@@ -286,8 +286,9 @@ class JwApi(
         val base = "$host/jwglxt"
         // 1. csrftoken
         val loginPage = get("$base/xtgl/login_slogin.html")
-        val csrf = Jsoup.parse(loginPage).select("input#csrftoken").firstOrNull()?.attr("value")
-            ?: Jsoup.parse(loginPage).select("input[name=csrftoken]").firstOrNull()?.attr("value")
+        val loginDoc = Jsoup.parse(loginPage)
+        val csrf = loginDoc.selectFirst("input#csrftoken")?.attr("value")
+            ?: loginDoc.selectFirst("input[name=csrftoken]")?.attr("value")
             ?: return "无法获取登录令牌"
         // 2. RSA 公钥
         val pubJson = JSONObject(get("$base/xtgl/login_getPublicKey.html?time=1"))
@@ -460,7 +461,11 @@ class JwApi(
             get("$base/cjcx/cjcx_cxXscjIndex.html?gnmkdm=N305005", requireSession = true)
         } catch (e: SessionExpiredException) {
             throw e
-        } catch (_: Exception) { }
+        } catch (e: Exception) {
+            // 进成绩页失败不影响后面直接拿 JSON：这一步只是为了让 jw 系统把
+            // 会话/CSRF 状态准备好。真失败会在下面的正式请求里暴露出来。
+            e.logSwallowed("JwApi", "预热成绩页")
+        }
         val form = FormBody.Builder()
             .add("xnm", xnm)
             .add("xqm", xqm)

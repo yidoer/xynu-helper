@@ -1,0 +1,152 @@
+
+
+
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no" />
+<meta http-equiv="pragma" content="no-cache"/>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0"/>
+<meta charset="utf-8">
+
+	
+	<title>用户绑定</title>
+
+<link type="text/css" rel="stylesheet" href="/res/css/common.css" />
+<link type="text/css" rel="stylesheet" href="/res/css/slider.css" />
+<link rel="stylesheet" type="text/css" href="/res/css/slidernav.css" media="screen, projection" />
+<link rel="stylesheet" href="https://www.jq22.com/jquery/font-awesome-5.15.2.all.css">
+<script src="/res/plugin/jquery1.7.2/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="/res/js/commonUtils.js"></script>
+<script type="text/javascript" src="/res/js/longbow_20220907.js"></script>
+<script type="text/javascript" src="/res/js/crypto-js.min.js"></script>
+</head>
+
+<body>
+	<div class="login">
+    		<h2>信阳师范大学</h2>
+    	
+        <div class="box">
+        <aside style="white-space: pre-wrap;">请用图书馆借阅证账号密码登陆</aside>
+            <form>
+                <input class="hidparam" type="hidden" name="wxProductId" value="1512" />
+                <input class="hidparam" type="hidden" name="code" value="" />
+<input class="hidparam" type="hidden" name="openid" value="oTESTPLACEHOLDER000000000000" />
+				<input class="hidparam" type="hidden" name="schoolId" value="968" />
+				<input class="hidparam" type="hidden" name="backUrl" value="" />
+				<input class="hidparam" type="hidden" name="areaid" value="274"  />
+				<input class="hidparam" type="hidden" name="userType" value="0"  />
+				<input type="hidden" name="bindUrl" value="/weixin/userBind/bind"/>
+				<div class="log nub"><input class="hidparam" id="userName" name="userName" type="text" placeholder="用户名"/></div>
+                
+                <div class="log sec"><input class="hidparam" id="passWord" name="passWord" type="password"  placeholder="密码"/></div>
+                
+
+
+
+
+                <input type="button" name="submitBtn" class="btn"  onclick="bindSubmit()" value="提交" />
+            </form>
+
+            
+
+            
+            
+            
+
+            
+
+            
+
+        </div>
+
+        
+    </div>
+
+    <div class="container-fluid" id="yzm" style="display: none">
+        <div class="form-row">
+            <div class="col-12">
+                <div class="slidercaptcha card">
+                    <div class="card-header"><span>请完成安全验证</span></div>
+                    <div class="card-body">
+                        <div id="captcha"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 检查是否为schoolId 6377且有errorMsg参数，如果是则弹窗显示
+        
+
+        function bindSubmit() {
+            // 检查验证码
+            $('#yzm').show();
+        }
+
+        function afterYzm() {
+            var userName = $("#userName").val();
+            var passWord = $("#passWord").val();
+            if (userName == "") {
+                myAlert("用户名不能为空");
+                return false;
+            }
+            if (passWord == "") {
+                myAlert("密码不能为空");
+                return false;
+            }
+            //设置提交之后按钮不可重复点击
+            $(".btn").attr("disabled", "true");
+            myAlert("提交中");
+            var url = "" + $('input[name="bindUrl"]').val();
+            url = userBindmakeUrl(url, "hidparam");
+            window.location.href = url;
+        }
+
+        //构造最终要ajax提交的链接（baseUrl:基础url；className:要提交值的标签class)
+        function userBindmakeUrl(baseUrl, className) {
+            var first = true;
+            $("." + className).each(function () {
+                if (first) {
+                    baseUrl = baseUrl + "?";
+                    first = false;
+                } else {
+                    baseUrl = baseUrl + "&";
+                }
+                //var value = encodeURI($(this).val());
+                var value = encodeURIComponent($(this).val());
+                let name = $(this).attr("name")
+                if (name == 'userName' || name == 'passWord') {
+                    baseUrl = baseUrl + name + "=" + encodeURIComponent(getAesString(value));
+                } else {
+                    baseUrl = baseUrl + name + "=" + value;
+                }
+            });
+            return baseUrl;
+        }
+
+        function getAesString(data) {
+            let keys = CryptoJS.enc.Utf8.parse("aB3#dF7$eG2!hJ5&")
+            let encrypt = CryptoJS.AES.encrypt(data, keys, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            return encrypt.toString();
+        }
+
+        $('#captcha').sliderCaptcha(
+            {
+                repeatIcon: 'fa fa-redo',
+                setSrc: function () {
+                    return '';
+                },
+                onSuccess: function () {
+                    afterYzm();
+                }
+            });
+
+    </script>
+</body>
+</html>

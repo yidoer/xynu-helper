@@ -34,16 +34,17 @@ fun Request.Builder.requireSession(kind: SessionKind): Request.Builder =
 object SessionDetector {
 
     fun isExpired(kind: SessionKind, finalUrl: String, body: String): Boolean {
-        val url = finalUrl.lowercase()
-        val html = body.lowercase()
+        // 用 ignoreCase 比较代替 lowercase()：每个受保护请求都会走这里，
+        // 避免把整页 HTML 再复制一份小写副本。
+        fun String.has(s: String) = contains(s, ignoreCase = true)
         return when (kind) {
             SessionKind.JW ->
-                url.contains("login_slogin") ||
-                    html.contains("form") && html.contains("login_slogin")
+                finalUrl.has("login_slogin") ||
+                    body.has("form") && body.has("login_slogin")
 
             SessionKind.LIB ->
-                url.contains("/opac/login") ||
-                    (html.contains("checklogin.jsp") && html.contains("password"))
+                finalUrl.has("/opac/login") ||
+                    (body.has("checklogin.jsp") && body.has("password"))
         }
     }
 }

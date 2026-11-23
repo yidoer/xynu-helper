@@ -16,11 +16,13 @@ import com.xynu.campus.data.net.LibApi
 import com.xynu.campus.data.net.SessionExpiredException
 import com.xynu.campus.data.repo.CredentialsStore
 import com.xynu.campus.data.repo.PreferencesStore
+import com.xynu.campus.ui.common.ignoreOrRethrowCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -60,7 +62,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun handleSessionExpired(error: SessionExpiredException) {
         AppCookieJar.clear(error.host)
-        _state.value = _state.value.copy(
+        _state.update { cur -> cur.copy(
             loggedIn = false,
             sessionExpired = true,
             checkingLogin = false,
@@ -76,18 +78,18 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
             historyError = null,
             detailError = null,
             loginMessage = "图书馆登录已过期，请重新登录"
-        )
+        ) }
     }
 
     fun consumeSessionExpired() {
-        _state.value = _state.value.copy(sessionExpired = false)
+        _state.update { cur -> cur.copy(sessionExpired = false) }
     }
 
     init {
         // 持续观察收藏变化（DataStore Flow）
         viewModelScope.launch {
             PreferencesStore.favorites(getApplication()).collect { list ->
-                _state.value = _state.value.copy(favorites = list)
+                _state.update { cur -> cur.copy(favorites = list) }
             }
         }
         autoLogin()
@@ -95,7 +97,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
 
     fun checkLogin() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(checkingLogin = true)
+            _state.update { cur -> cur.copy(checkingLogin = true) }
             val ok = try {
                 // 用 readerStats 探测：未登录时服务端会重定向到登录页，这里直接抛异常
                 withContext(Dispatchers.IO) { api.readerStats() }
@@ -107,30 +109,30 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 false
             }
             if (!_state.value.sessionExpired) {
-                _state.value = _state.value.copy(loggedIn = ok, checkingLogin = false)
+                _state.update { cur -> cur.copy(loggedIn = ok, checkingLogin = false) }
             }
         }
     }
 
     fun login(username: String, password: String, saveCredentials: Boolean) {
         if (username.isBlank() || password.isBlank()) {
-            _state.value = _state.value.copy(loginMessage = "请输入账号和密码")
+            _state.update { cur -> cur.copy(loginMessage = "请输入账号和密码") }
             return
         }
         viewModelScope.launch {
-            _state.value = _state.value.copy(
+            _state.update { cur -> cur.copy(
                 loggingIn = true,
                 loginMessage = "",
                 sessionExpired = false
-            )
+            ) }
             val err = try {
                 withContext(Dispatchers.IO) { api.login(username.trim(), password) }
             } catch (e: Exception) {
                 "登录失败：${e.message ?: "网络异常"}，请检查网络后重试"
             }
-            _state.value = _state.value.copy(loggingIn = false)
+            _state.update { cur -> cur.copy(loggingIn = false) }
             if (err == null) {
-                _state.value = _state.value.copy(loggedIn = true, loginMessage = "登录成功")
+                _state.update { cur -> cur.copy(loggedIn = true, loginMessage = "登录成功") }
                 if (saveCredentials) {
                     launch {
                         try {
@@ -144,7 +146,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 loadStats()
             } else {
-                _state.value = _state.value.copy(loginMessage = err)
+                _state.update { cur -> cur.copy(loginMessage = err) }
             }
         }
     }
@@ -157,18 +159,18 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (_: Exception) { null } ?: return@launch
             if (cred.username.isBlank()) return@launch
-            _state.value = _state.value.copy(loggingIn = true)
+            _state.update { cur -> cur.copy(loggingIn = true) }
             val err = try {
                 withContext(Dispatchers.IO) { api.login(cred.username, cred.password) }
             } catch (e: Exception) {
                 "自动登录失败：${e.message ?: "网络异常"}"
             }
             if (err == null) {
-                _state.value = _state.value.copy(loggingIn = false, loggedIn = true, loginMessage = "已自动登录")
+                _state.update { cur -> cur.copy(loggingIn = false, loggedIn = true, loginMessage = "已自动登录") }
                 loadStats()
             } else {
-                try { withContext(Dispatchers.IO) { CredentialsStore.clearLib(getApplication()) } } catch (_: Exception) { }
-                _state.value = _state.value.copy(loggingIn = false, loginMessage = err)
+                try { withContext(Dispatchers.IO) { CredentialsStore.clearLib(getApplication()) } } catch (e: Exception) { e.ignoreOrRethrowCancellation("LibViewModel", "清理图书馆凭据", rethrowCancellation = false) }
+                _state.update { cur -> cur.copy(loggingIn = false, loginMessage = err) }
             }
         }
     }
@@ -184,40 +186,40 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
     fun search(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch {
-            _state.value = _state.value.copy(searching = true, searchError = null, searchQuery = query)
+            _state.update { cur -> cur.copy(searching = true, searchError = null, searchQuery = query) }
             try {
                 val books = withContext(Dispatchers.IO) { api.searchBooks(query.trim()) }
-                _state.value = _state.value.copy(searching = false, books = books)
+                _state.update { cur -> cur.copy(searching = false, books = books) }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     searching = false,
                     searchError = e.message ?: "检索失败"
-                )
+                ) }
             }
         }
     }
 
     fun loadHoldings(bookId: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(holdingBookId = bookId)
+            _state.update { cur -> cur.copy(holdingBookId = bookId) }
             try {
                 val holdings = withContext(Dispatchers.IO) { api.getHoldings(bookId) }
-                _state.value = _state.value.copy(
-                    holdings = _state.value.holdings + (bookId to holdings),
+                _state.update { cur -> cur.copy(
+                    holdings = cur.holdings + (bookId to holdings),
                     holdingBookId = null
-                )
+                ) }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(holdingBookId = null)
+                _state.update { cur -> cur.copy(holdingBookId = null) }
             }
         }
     }
 
     fun loadBorrowed() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(loadingBorrow = true, borrowError = null)
+            _state.update { cur -> cur.copy(loadingBorrow = true, borrowError = null) }
             try {
                 val list = withContext(Dispatchers.IO) { api.myBorrowed() }
-                _state.value = _state.value.copy(loadingBorrow = false, borrowList = list, loggedIn = true)
+                _state.update { cur -> cur.copy(loadingBorrow = false, borrowList = list, loggedIn = true) }
             } catch (e: SessionExpiredException) {
                 handleSessionExpired(e)
             } catch (e: Exception) {
@@ -225,11 +227,11 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 // 保留服务端显式未授权的兼容判断；登录页本身由 SessionInterceptor 统一识别。
                 val isAuthError = msg.contains("登录") || msg.contains("未授权") ||
                     msg.contains("HTTP 4") || msg.contains("HTTP 302")
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingBorrow = false,
                     borrowError = msg,
                     loggedIn = !isAuthError
-                )
+                ) }
                 if (isAuthError) {
                     // 顺手清空无效凭据，避免下次自动登录再次失败
                     launch {
@@ -237,7 +239,15 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                             withContext(Dispatchers.IO) {
                                 CredentialsStore.clearLib(getApplication())
                             }
-                        } catch (_: Exception) { }
+                        } catch (e: Exception) {
+                            // 和 L172 一致：这是"清理收尾"，协程被取消也要清完，
+                            // 否则失效凭据留在盘上，下次自动登录会再失败一次。
+                            e.ignoreOrRethrowCancellation(
+                                "LibViewModel",
+                                "清理无效图书馆凭据",
+                                rethrowCancellation = false,
+                            )
+                        }
                     }
                 }
             }
@@ -246,18 +256,18 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
 
     fun renew(barcode: String, bookId: String, renewUrl: String? = null) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(renewing = barcode, renewMessage = null)
+            _state.update { cur -> cur.copy(renewing = barcode, renewMessage = null) }
             try {
                 val msg = withContext(Dispatchers.IO) { api.renew(barcode, bookId, renewUrl) }
-                _state.value = _state.value.copy(renewing = null, renewMessage = msg)
+                _state.update { cur -> cur.copy(renewing = null, renewMessage = msg) }
                 loadBorrowed()  // 刷新
             } catch (e: SessionExpiredException) {
                 handleSessionExpired(e)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     renewing = null,
                     renewMessage = "续借失败: ${e.message}"
-                )
+                ) }
             }
         }
     }
@@ -268,7 +278,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val stats = withContext(Dispatchers.IO) { api.readerStats() }
-                _state.value = _state.value.copy(stats = stats, loggedIn = true)
+                _state.update { cur -> cur.copy(stats = stats, loggedIn = true) }
             } catch (e: SessionExpiredException) {
                 handleSessionExpired(e)
             } catch (_: Exception) {
@@ -281,17 +291,17 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadHistory() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(loadingHistory = true, historyError = null)
+            _state.update { cur -> cur.copy(loadingHistory = true, historyError = null) }
             try {
                 val list = withContext(Dispatchers.IO) { api.borrowHistory() }
-                _state.value = _state.value.copy(loadingHistory = false, historyList = list)
+                _state.update { cur -> cur.copy(loadingHistory = false, historyList = list) }
             } catch (e: SessionExpiredException) {
                 handleSessionExpired(e)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingHistory = false,
                     historyError = e.message ?: "加载借阅历史失败"
-                )
+                ) }
             }
         }
     }
@@ -300,17 +310,17 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadBookDetail(bookId: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(loadingDetail = true, detailError = null, bookDetail = null)
+            _state.update { cur -> cur.copy(loadingDetail = true, detailError = null, bookDetail = null) }
             try {
                 val detail = withContext(Dispatchers.IO) { api.getBookDetail(bookId) }
-                _state.value = _state.value.copy(loadingDetail = false, bookDetail = detail)
+                _state.update { cur -> cur.copy(loadingDetail = false, bookDetail = detail) }
             } catch (e: SessionExpiredException) {
                 handleSessionExpired(e)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
+                _state.update { cur -> cur.copy(
                     loadingDetail = false,
                     detailError = e.message ?: "加载图书详情失败"
-                )
+                ) }
             }
         }
     }
@@ -329,7 +339,7 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.toggleFavorite(getApplication(), fav)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("LibViewModel", "保存收藏") }
         }
     }
 
@@ -345,13 +355,13 @@ class LibViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     PreferencesStore.toggleFavorite(getApplication(), fav)
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) { e.ignoreOrRethrowCancellation("LibViewModel", "保存收藏") }
         }
     }
 
     fun isFavorite(bookId: String): Boolean = _state.value.favorites.any { it.id == bookId }
 
     fun clearRenewMessage() {
-        _state.value = _state.value.copy(renewMessage = null)
+        _state.update { cur -> cur.copy(renewMessage = null) }
     }
 }

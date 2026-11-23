@@ -21,6 +21,11 @@ import androidx.compose.ui.unit.sp
 
 /**
  * 统一紧凑顶栏（与主页一致：白底、48dp 高、红点品牌标）。
+ *
+ * 与主页顶栏同尺寸的关键数值集中在这里：红点 9dp、标题 17sp、左右 14dp。
+ * 之前这里是 8dp / 16sp / 6dp，页面与主页并排切换时标题会左右跳 8dp，
+ * 字号也差 1sp——单看都正常，连着切两次就能看出来。
+ *
  * @param title 页面标题
  * @param onBack 返回回调（null 则不显示返回键）
  * @param action 右侧操作区（可选）
@@ -37,13 +42,17 @@ fun AppTopBar(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .height(48.dp)
-                .padding(horizontal = 6.dp),
+                .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (onBack != null) {
                 IconButton(
                     onClick = onBack,
-                    modifier = Modifier.size(38.dp)
+                    // 38dp 触控位，但左侧用负偏移抵掉一半内边距，
+                    // 让图标视觉上对齐主页的 14dp 边距，而不是 14+9=23dp。
+                    modifier = Modifier
+                        .size(38.dp)
+                        .offset(x = (-9).dp)
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
@@ -56,13 +65,13 @@ fun AppTopBar(
             // 品牌红点
             Box(
                 modifier = Modifier
-                    .size(8.dp)
+                    .size(9.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
             )
             Spacer(Modifier.width(7.dp))
             Text(
                 title,
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1C1C1E),
                 maxLines = 1,

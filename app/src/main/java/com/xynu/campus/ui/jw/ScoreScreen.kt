@@ -1,5 +1,6 @@
 package com.xynu.campus.ui.jw
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -60,6 +61,9 @@ fun ScoreScreen(
             }
             else -> Column(Modifier.fillMaxSize().padding(padding)) {
                 // 学期选择（横滑；选中项自动滚到可见区）
+                // 用矮标签而不是 FilterChip：FilterChip 自带 32dp 高 + 上下边距，
+                // 一整排下来要吃掉 50 多 dp，成绩列表本来就只有一屏，
+                // 选项条占越多正文越少。这里压到 ~30dp 一行。
                 if (state.terms.isNotEmpty()) {
                     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
                     val selectedIndex = state.terms.indexOfFirst {
@@ -70,16 +74,26 @@ fun ScoreScreen(
                     }
                     LazyRow(
                         state = listState,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(state.terms, key = { it.xnm + it.xqm }) { term ->
                             val selected = state.selectedTerm?.xnm == term.xnm && state.selectedTerm?.xqm == term.xqm
-                            FilterChip(
-                                selected = selected,
-                                onClick = { if (!selected) vm.selectTerm(term) },
-                                label = { Text(term.label, fontSize = 12.sp) }
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = if (selected) MaterialTheme.colorScheme.primary else Color.White,
+                                modifier = Modifier.clickable {
+                                    if (!selected) vm.selectTerm(term)
+                                }
+                            ) {
+                                Text(
+                                    term.label,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+                                    color = if (selected) Color.White else Color(0xFF3A3A3C),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                                )
+                            }
                         }
                     }
                 }

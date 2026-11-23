@@ -1,5 +1,6 @@
 package com.xynu.campus.data.parser
 
+import com.xynu.campus.data.logSwallowed
 import com.xynu.campus.data.model.BookDetail
 import com.xynu.campus.data.model.BookHolding
 import com.xynu.campus.data.model.BookItem
@@ -59,7 +60,9 @@ object LibParser {
                     holdingCount = countText,
                     canBorrowCount = ""
                 )
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                e.logSwallowed("LibParser", "解析一条检索结果")
+            }
         }
         return items.distinctBy { it.id }
     }

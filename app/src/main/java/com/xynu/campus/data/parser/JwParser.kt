@@ -1,5 +1,6 @@
 package com.xynu.campus.data.parser
 
+import com.xynu.campus.data.logSwallowed
 import com.xynu.campus.data.model.CampusOption
 import com.xynu.campus.data.model.Course
 import com.xynu.campus.data.model.FreeRoom
@@ -10,13 +11,13 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 
 /**
- * 教务系统解析器（正方 v5）。
+ * 教务系统解析器（正方 V9）。
  * 课表/成绩接口即返回 JSON，也兼容 HTML 表格回退。
  */
 object JwParser {
 
     /**
-     * 解析课表。输入可能是 JSON（正方 v5 接口返回 kbList）或 HTML 表格。
+     * 解析课表。输入可能是 JSON（正方 V9 接口返回 kbList）或 HTML 表格。
      */
     fun parseSchedule(payload: String): List<Course> {
         val trimmed = payload.trim()
@@ -30,7 +31,7 @@ object JwParser {
         return parseScheduleHtml(payload)
     }
 
-    /** 正方 v5 JSON: {"kbList":[{kcmc,jsmc,xqj,skjc,jcs,xmd,cdmc, ...}]} */
+    /** 正方 V9 JSON: {"kbList":[{kcmc,jsmc,xqj,skjc,jcs,xmd,cdmc, ...}]} */
     private fun parseScheduleJson(o: JSONObject): List<Course> {
         val arr = o.optJSONArray("kbList") ?: return emptyList()
         return parseKbArray(arr)
@@ -70,10 +71,16 @@ object JwParser {
                     isOddWeeks = xs.contains("单"),
                     isEvenWeeks = xs.contains("双")
                 )
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                e.logSwallowed("JwParser", "解析一条课表 JSON 记录")
+            }
         }
         return courses.distinctBy { it.name + it.dayOfWeek + it.startSection + it.location + it.weeksText }
     }
+
+    private val KB_LIST_IN_SCRIPT = Regex("\"kbList\"\\s*[:=]\\s*(\\[.*?\\])")
+    private val SECTION_RANGE = Regex("(\\d+)\\s*[-~至]\\s*(\\d+)")
+    private val WEEK_RANGE = Regex("(\\d+)(?:\\s*-\\s*(\\d+))?")
 
     /** HTML 表格回退 */
     private fun parseScheduleHtml(html: String): List<Course> {
@@ -83,10 +90,12 @@ object JwParser {
         doc.select("script").forEach { script ->
             val t = script.html()
             if (t.contains("kbList")) {
-                Regex("\"kbList\"\\s*[:=]\\s*(\\[.*?\\])").find(t)?.groupValues?.get(1)?.let {
+                KB_LIST_IN_SCRIPT.find(t)?.groupValues?.get(1)?.let {
                     try {
                         return parseKbArray(JSONArray(it))
-                    } catch (_: Exception) { }
+                    } catch (e: Exception) {
+                        e.logSwallowed("JwParser", "解析 script 内嵌 kbList")
+                    }
                 }
             }
         }
@@ -123,14 +132,16 @@ object JwParser {
                         isEvenWeeks = false
                     )
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                e.logSwallowed("JwParser", "解析一行课表 HTML 表格")
+            }
         }
         return courses.distinctBy { it.name + it.dayOfWeek + it.startSection + it.location + it.weeksText }
     }
 
     private fun parseSections(raw: String): Pair<Int, Int> {
         if (raw.isBlank()) return 1 to 1
-        val m = Regex("(\\d+)\\s*[-~至]\\s*(\\d+)").find(raw)
+        val m = SECTION_RANGE.find(raw)
         if (m != null) return m.groupValues[1].toInt() to m.groupValues[2].toInt()
         // JSON "skjc":"3" 单节
         return raw.trim().toIntOrNull()?.let { it to it } ?: (1 to 1)
@@ -152,7 +163,7 @@ object JwParser {
     /** 解析周次文本，返回 (start, end, 单/双周标记) */
     private fun parseWeeks(raw: String): Triple<Int, Int, Boolean> {
         var start = 1; var end = 20; var oddEven = false
-        val m = Regex("(\\d+)(?:\\s*-\\s*(\\d+))?").find(raw)
+        val m = WEEK_RANGE.find(raw)
         if (m != null) {
             start = m.groupValues[1].toIntOrNull() ?: 1
             end = m.groupValues[2].toIntOrNull() ?: start
@@ -195,7 +206,9 @@ object JwParser {
                     remark = o.optString("bz").ifEmpty { o.optString("备注") },
                     semester = o.optString("xnmc").ifEmpty { o.optString("学年学期") }
                 )
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                e.logSwallowed("JwParser", "解析一条成绩记录")
+            }
         }
         return scores
     }

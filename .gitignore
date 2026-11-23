@@ -28,3 +28,18 @@ build-log*.txt
 
 # 本地联调探针脚本与抓包产物（含 Cookie/截图，不入库）
 tools/
+
+# 抓包 / 探测产物：可能含真实 Cookie 与身份串，绝不入库
+*.cookie
+libopac_*
+*_cookie.txt
+probe_*
+build-artifacts/
+
+# 例外：docs/ 下的探针结论文档是给人和 README 看的，不含凭据，必须入库。
+# 注意 `!` 否定规则必须写在上面的 `probe_*` 之后才生效，顺序反了不起作用。
+!docs/probe_findings.md
+
+# 开发过程记录（AI 审查逐轮日志，225KB），属于本地工作笔记而非产品文档，不入库。
+# 若某天要公开，先确认里面没有贴真实凭据，再删掉这一行。
+docs/review-notes.md

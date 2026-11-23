@@ -1,6 +1,7 @@
 package com.xynu.campus.ui.lib
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -97,22 +98,37 @@ fun MyBorrowScreen(
                     OverdueBanner(state.stats!!.overdueCount)
                 }
 
-                // Tab 切换
-                TabRow(
-                    selectedTabIndex = tab,
-                    containerColor = Color.White,
-                    contentColor = XynuRed
+                // Tab 切换：用 34dp 的矮标签代替 TabRow（TabRow 固定 48dp + 分隔线，
+                // 下面还要放列表，两行选项条叠起来正文只剩半屏）。
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Tab(
-                        selected = tab == 0,
-                        onClick = { tab = 0 },
-                        text = { Text("当前借阅 (${state.borrowList.size})", fontSize = 13.sp) }
-                    )
-                    Tab(
-                        selected = tab == 1,
-                        onClick = { tab = 1 },
-                        text = { Text("借阅历史 (${state.historyList.size})", fontSize = 13.sp) }
-                    )
+                    listOf(
+                        "当前借阅 (${state.borrowList.size})" to 0,
+                        "借阅历史 (${state.historyList.size})" to 1,
+                    ).forEach { (label, index) ->
+                        val selected = tab == index
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = if (selected) XynuRed else Color(0xFFF2F3F5),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { tab = index }
+                        ) {
+                            Text(
+                                label,
+                                fontSize = 12.sp,
+                                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+                                color = if (selected) Color.White else Color(0xFF3A3A3C),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.padding(vertical = 6.dp)
+                            )
+                        }
+                    }
                 }
 
                 when (tab) {

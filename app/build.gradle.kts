@@ -24,6 +24,9 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "1.1.0"
+        // 图书馆助手的「加密落盘」验收需要真实 AndroidKeyStore，
+        // 只能在设备/模拟器上跑（Robolectric 没有 Keystore 实现）。
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -39,7 +42,11 @@ android {
 
     buildTypes {
         release {
+            // R8 压缩 + 混淆暂不开启，保证 release 包行为与之前完全一致。
+            // proguard-rules.pro 已补好 JS 桥 / 异常类名 / 行号的保留规则；
+            // 需要时把下面两项改成 true，并在真机上完整回归 release 包后再发布。
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
@@ -58,6 +65,13 @@ android {
     }
     packaging {
         resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1", "META-INF/DEPENDENCIES")
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 }
 
@@ -81,8 +95,8 @@ dependencies {
     implementation("org.jsoup:jsoup:1.17.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // RSA 加密
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // 图书馆助手：本地提醒（F4 基础档，零网络）
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
@@ -91,4 +105,17 @@ dependencies {
     // android.jar 里的 org.json 只是空壳（方法体全部 throw "not mocked"），
     // 本地 JVM 单测需要真实实现才能覆盖 JSON 解析分支。
     testImplementation("org.json:json:20240303")
+    // Robolectric：验证 EncryptedSharedPreferences 落盘不含明文、WorkManager 零网络约束
+    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.work:work-testing:2.9.1")
+    // 白名单拦截器的验收必须在真实 HTTP 栈上验证（不能只测字符串判断）
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    // ViewModel 状态机测试需要可控主线程调度器（Dispatchers.setMain + runTest）
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+
+    // 仪器测试：验证真实 EncryptedSharedPreferences 落盘不含明文
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:core:1.6.1")
 }

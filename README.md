@@ -1,158 +1,107 @@
 # 信师大 · 一站式校园服务 App
 
-面向**信阳师范大学**学生的一站式校园服务 Android 应用（Kotlin + Jetpack Compose 原生开发，非官方、个人开发）。
+面向**信阳师范大学**学生的校园服务 Android 应用。Kotlin + Jetpack Compose 原生开发，非官方、个人开发。
 
-> ⚠️ 本应用调用的是学校各系统的**公开网页接口**（模拟浏览器登录后抓取数据），与学校官方无隶属关系。数据仅供个人查询使用，请勿滥用。
+> ⚠️ 本应用调用学校各系统的**公开网页接口**（模拟浏览器登录后读取数据），与学校官方无隶属关系。数据仅供个人查询，请勿滥用。
 
----
+## 功能
 
-## 🚀 v1.1.0 变更说明
-
-- 网络请求统一使用 15 秒连接/读取/写入超时，避免校园系统不可达时页面长时间停留在加载状态。
-- 统一识别正方教务与图书馆 OPAC 的登录重定向/登录页响应；会话失效时清理本地会话数据并自动回到对应登录页。
-- 为课表、成绩、空教室、OPAC 借阅列表等 Jsoup/JSON 解析逻辑补充页面结构 fixture、字段缺失和异常输入单元测试。
-- 发布版本号：`versionName 1.1.0`，`versionCode 2`。
-
-## ✨ 功能总览
-
-| 模块 | 功能 | 是否需要登录 |
+| 模块 | 功能 | 需要登录 |
 |---|---|---|
-| 🏠 首页 | 品牌横幅、常用服务入口、教务通知、图书馆公告聚合 | 否 |
-| 📅 我的课表 | 正方教务课表（周视图，按星期/节次排布） | 教务系统 |
+| 🏠 首页 | 常用服务入口、教务通知、图书馆公告聚合 | 否 |
+| 📅 我的课表 | 正方教务课表，周视图按星期/节次排布 | 教务系统 |
 | 📊 成绩查询 | 按学期查询成绩、学分、绩点 | 教务系统 |
-| 🔍 馆藏检索 | 图书馆 OPAC 检索（题名/作者/主题/ISBN），查看索书号、馆藏地、在馆状态 | 否（检索免费） |
-| 📚 我的借阅 | 查看当前借阅列表、应还日期、在线续借 | 图书馆 |
-| 🏫 教务登录 / 图书馆登录 | 单独登录，凭据 Keystore 加密存储 | — |
+| 🔍 馆藏检索 | OPAC 检索 + 书目详情 + 收藏，校内外网络都能用 | 否 |
+| 📚 我的借阅 | 当前借阅、应还日期、在线续借 | 图书馆 |
+| 📖 座位预约 | 到点本地提醒（基础档）/ Cookie 解锁自动选座（高级档） | 微信内取凭据 |
+| 🔑 身份迁移 | 两台手机间本地导出/导入图书馆身份，不经服务器 | 否 |
 | ⚙️ 设置 | 关于、数据来源说明 | — |
 
-## 🛠 技术栈
+## 安装
 
-- **语言**: Kotlin
-- **UI**: Jetpack Compose + Material 3 + Navigation Compose
-- **网络**: OkHttp + Jsoup（HTML 解析）
-- **存储**: DataStore 偏好存储 + Android Keystore 加密凭据
-- **架构**: MVVM（ViewModel + StateFlow）
-- **构建**: Gradle 8.11.1 / AGP 8.5.2 / JDK 17
+**方式一：直接装 APK**
+把 `app-debug.apk` 传到手机安装即可（需允许「安装未知来源应用」）。要求 **Android 8.0+**（minSdk 26）。
 
-## 📦 安装与使用
-
-### 直接安装（已编译 APK）
-
-```
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-把 APK 传到 Android 手机安装即可（需允许"安装未知来源应用"）。要求 Android 8.0+（minSdk 26）。
-
-### 从源码构建
+**方式二：自己编译**
 
 ```bash
-# 需要 JDK 17 + Android SDK（compileSdk 35）
+# 需要 JDK 17 + Android SDK (compileSdk 35)
 ./gradlew :app:assembleDebug
 # 产物：app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### Release 构建与签名
+## 技术栈
 
-正式发布的 APK 使用独立的 release keystore 签名。keystore 文件与密码文件均**不提交到 git**（已在 `.gitignore` 中排除）。
+Kotlin · Jetpack Compose + Material 3 · MVVM (StateFlow) · OkHttp + Jsoup · DataStore + Android Keystore · WorkManager
+构建：Gradle 8.11.1 / AGP 8.5.2 / JDK 17 / minSdk 26 · targetSdk 35
 
-**1. 生成 keystore（首次一次性）**
+## 使用要点
 
-```bash
-keytool -genkeypair -v \
-  -keystore app/xynu-campus-release.keystore \
-  -alias xynu-campus -keyalg RSA -keysize 2048 -validity 10950 \
-  -dname "CN=xynu-campus, OU=dev, O=xynu-campus, L=Xinyang, ST=Henan, C=CN"
-```
+- **馆藏检索**免登录，输入关键词即可查书、看书目详情与在馆状态，可收藏。
+- **课表/成绩**首次使用需在「教务登录」用学号 + 教务密码登录（凭据本地 Keystore 加密）。
+- **我的借阅**首次需在微信里取一次 `openid`（App 内有图引导），之后自动查询。
+- 借阅凭证等同于账号本体，请勿分享迁移码。
 
-**2. 创建 `app/keystore.properties`**（与 keystore 同目录，内容不提交）
+## 安全边界
 
-```properties
-storeFile=xynu-campus-release.keystore
-storePassword=<你的 keystore 密码>
-keyAlias=xynu-campus
-keyPassword=<你的 key 密码>
-```
+- **无服务器**：没有任何上报、统计、崩溃 SDK，凭据只存在本机 `EncryptedSharedPreferences`。
+- **域名白名单**：图书馆模块的 OkHttp 拦截器只放行 4 个 host，放行范围仅限该模块。
+- **日志脱敏**：`openid`、Cookie、密码在日志与界面里都不完整出现。
+- **禁止备份**：`allowBackup="false"` + 数据提取规则排除凭据文件。
 
-**3. 构建签名 APK**
+## 测试
 
 ```bash
-./gradlew :app:assembleRelease
-# 产物：app/build/outputs/apk/release/app-release.apk
+./gradlew :app:testDebugUnitTest        # 32 个测试类 / 327 个用例
+./gradlew :app:connectedDebugAndroidTest # 加密存储相关，需真机或模拟器
 ```
 
-`app/build.gradle.kts` 会在 `keystore.properties` 存在时自动挂载 release signingConfig；文件缺失时 release 构建会回退为未签名（CI/无密钥环境仍可编译通过）。
+用真实抓取的校内页面作为 fixture 验证解析器。项目里大量测试是**回归护栏**：把代码改回错误写法就会变红，例如「白名单只放行 4 个 host」「基础档零网络请求」「会话失效只重试 1 次」。
 
-**4. 验证签名**
-
-```bash
-apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
-```
-
-> ⚠️ 请妥善保管 keystore 与密码：丢失后无法以同一签名发布更新，用户将无法覆盖安装升级。
-
-### 使用说明
-
-1. **馆藏检索**：无需登录，进入"馆藏检索"→ 输入书名/作者→ 搜索 → 点"查看馆藏"看索书号和在馆状态
-2. **教务课表/成绩**：首次进入去"教务登录"用学号+教务密码登录（勾选记住则本地加密保存），回课表/成绩页即可查看
-3. **我的借阅**：用图书馆账号（学号/校园卡号，初始密码身份证后6位）登录，可看借阅列表并在线续借
-
-## 🔍 抓取协议说明
-
-本应用通过模拟浏览器会话访问学校系统公开接口：
-
-### 教务系统（正方 v5）`http://210.43.24.144/jwglxt`
-
-- **登录**：GET `xtgl/login_slogin.html` 取 csrftoken → GET `login_getPublicKey.html` 取 RSA 公钥 → POST `xtgl/login_slogin.html` 提交 `yhm` + `mm`（RSA/ECB/PKCS1 加密）
-- **课表**：GET `kbcx/xskbcx_cxXskbcxIndex.html` 取学期下拉 → POST `kbcx/xskbcx_cxXsKb.html?gnmkdm=N253508` 提交 `xnm/xqm/kzlx`，解析 JSON `kbList`
-- **成绩**：POST `cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005` 提交学期，解析 JSON
-
-### 图书馆 OPAC（阿法迪）`http://222.21.62.201:8011/opac`
-
-- **登录**：POST `pages/include/checklogin.jsp`，密码使用页面内嵌 JS 的 AES-128-ECB 加密（密钥从登录页源码自动提取，实现见 `data/crypto/AesEcbCrypto.kt`）
-- **检索**：POST `opac/search`，参数 `q`（关键词）/`field`（题名/作者等）
-- **馆藏**：GET `opac/book/getHoldingsInformation/{bookId}` 返回 JSON 数组（索书号/条形码/馆藏地/状态）
-- **我的借阅**：GET `opac/mylibrary`（需登录会话）
-- **续借**：POST `opac/mylibrary/renew`
-
-### 资讯（WebPlus 站群）
-
-- 教务处动态：`http://jwc.xynu.edu.cn/jwdt.htm`，解析 `li > span(日期) + a(标题)`
-- 图书馆公告：`http://lib.xynu.edu.cn/`，解析 `.tzgg` 区块
-
-> 学校系统升级或改版可能导致接口失效，届时需同步更新 `data/net` 与 `data/parser`。
-
-## 📁 项目结构
+## 项目结构
 
 ```
 app/src/main/java/com/xynu/campus/
-├── MainActivity.kt            # 入口 + 导航路由
-├── data/
-│   ├── model/Models.kt        # 数据模型
-│   ├── net/                   # 网络层（JwApi/LibApi/NewsApi/OkHttp）
-│   ├── parser/                # HTML/JSON 解析器
-│   ├── crypto/                # RSA/AES/Keystore 加密
-│   └── repo/                  # 凭据存储
-└── ui/
-    ├── home/                  # 首页 + 资讯
-    ├── jw/                    # 教务：登录/课表/成绩
-    ├── lib/                   # 图书馆：登录/检索/借阅
-    ├── tools/                 # 设置
-    ├── common/                # 通用组件
-    └── theme/                 # 主题色（豫南红）
+├── MainActivity.kt      # 入口 + 导航路由
+├── data/                # 网络层 / 解析器 / 加密 / 凭据存储
+├── library/             # 图书馆模块（借阅 / 选座 / 馆藏检索 / 身份迁移）
+└── ui/                  # home / jw 教务 / lib 图书馆 / tools / common / theme
 ```
 
-## ✅ 测试
+## 参与贡献
 
-```
-./gradlew :app:testDebugUnitTest
-```
+1. **绝不提交真实凭据**（openid、sn、Cookie、学号、姓名）。fixture 里必须是占位符。提交前跑：
 
-用真实抓取的校内页面作为 fixture 验证解析器（`app/src/test/resources/fixtures/`）。
+   ```bash
+   pwsh -NoProfile -File scripts/scan_secrets.ps1   # 返回 0 才算干净
+   ```
 
-## 📜 免责声明
+2. **改了上游协议相关代码，就补一条会失败的测试**。这个项目几乎每个真机 bug 都留了护栏。
 
-- 本应用为个人学习与便利开发的非官方工具
-- 登录信息仅保存在本机（Keystore 加密），不会上传任何个人数据
-- 请勿使用本应用进行任何违反学校规定的操作
-- 数据以学校各系统网页版为准
+学校系统改版导致解析失效的 issue 最有价值，附上**已脱敏**的页面原文即可。
+
+## 免责声明
+
+个人学习与便利开发的非官方工具。登录信息仅保存在本机（Keystore 加密），不上传任何个人数据。
+请勿用于违反学校规定的用途。数据以学校各系统网页版为准。
+
+## 许可
+
+[GNU General Public License v3.0](LICENSE)。衍生作品分发时须同样以 GPL-3.0 开源。
+仓库不含构建产物，APK 请自行编译。
+
+---
+
+<details>
+<summary>📖 详细文档（功能细节 / 抓包协议 / 踩坑记录）</summary>
+
+完整的原版说明已备份至 [`docs/README-full.txt`](docs/README-full.txt)，包含：
+
+- 图书馆模块两档选座设计的完整说明与真机截图
+- 各系统抓包协议：正方教务 V9、阿法迪 OPAC、超星移动图书馆、「我去图书馆」选座
+- 一条条「只有真机才暴露」的坑与对应护栏测试
+- release 签名与 keystore 配置步骤
+
+上游协议的实验记录见 [`docs/probe_findings.md`](docs/probe_findings.md)。
+
+</details>

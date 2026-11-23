@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  数据提取规则（Android 12+）。
+
+  红线要求：图书馆助手保存的 openid / 选座 Cookie 等同账号本体，
+  绝不能随云备份或设备迁移离开本机。
+
+  因此图书馆助手的加密身份文件 library_identity_enc 被显式排除；
+  allowBackup 本身也已置为 false（双保险）。
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="library_identity_enc.xml" />
+        <exclude domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="library_identity_enc.xml" />
+        <exclude domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

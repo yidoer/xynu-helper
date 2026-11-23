@@ -3,6 +3,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 图书馆助手 F4 基础档的本地提醒通知（Android 13+ 运行时权限） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- 声明需要查询/跳转的外部应用（支付宝小程序、系统浏览器等） -->
     <queries>
@@ -18,17 +20,23 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
         </intent>
+        <!-- 图书馆助手：三级跳转的 weixin:// scheme（F4 基础档通知点击） -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="weixin" />
+        </intent>
         <package android:name="com.tencent.mm" />
     </queries>
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.XynuCampus"
-        android:usesCleartextTraffic="true">
+        android:theme="@style/Theme.XynuCampus">
         <activity
             android:name=".MainActivity"
             android:exported="true"
