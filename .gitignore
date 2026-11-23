@@ -27,7 +27,8 @@ keystore.properties
 build-log*.txt
 
 # 本地联调探针脚本与抓包产物（含 Cookie/截图，不入库）
-tools/
+# 只锚定仓库根目录的 tools/，避免误伤 app/src/**/ui/tools/ 这类源码包
+/tools/
 
 # 抓包 / 探测产物：可能含真实 Cookie 与身份串，绝不入库
 *.cookie
