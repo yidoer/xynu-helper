@@ -131,7 +131,7 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(Modifier.padding(4.dp)) {
-                    SettingRow("版本 1.1.0") { }
+                    SettingRow("版本 1.1.1") { }
                 }
             }
         }

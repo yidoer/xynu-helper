@@ -22,8 +22,8 @@ android {
         applicationId = "com.xynu.campus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         // 图书馆助手的「加密落盘」验收需要真实 AndroidKeyStore，
         // 只能在设备/模拟器上跑（Robolectric 没有 Keystore 实现）。
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
